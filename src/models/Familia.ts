@@ -15,14 +15,14 @@ export interface FamiliaAttributes {
 export interface FamiliaCreationAttributes extends Optional<FamiliaAttributes, "id" | "rendaFamiliar" | "createdAt"> {}
 
 export class Familia extends Model<FamiliaAttributes, FamiliaCreationAttributes> implements FamiliaAttributes {
-  public id!: number;
-  public nomeResponsavel!: string;
-  public endereco!: string;
-  public latitude!: number;
-  public longitude!: number;
-  public rendaFamiliar!: number | null;
-  public qtdMembros!: number;
-  public readonly createdAt!: Date;
+  public declare id: number;
+  public declare nomeResponsavel: string;
+  public declare endereco: string;
+  public declare latitude: number;
+  public declare longitude: number;
+  public declare rendaFamiliar: number | null;
+  public declare qtdMembros: number;
+  public declare readonly createdAt: Date;
 }
 
 Familia.init(

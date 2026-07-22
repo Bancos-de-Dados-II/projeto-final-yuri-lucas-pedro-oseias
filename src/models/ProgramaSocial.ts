@@ -14,13 +14,13 @@ export interface ProgramaSocialAttributes {
 export interface ProgramaSocialCreationAttributes extends Optional<ProgramaSocialAttributes, "id" | "descricao" | "orgaoResponsavel" | "dataInicio" | "dataFim" | "ativo"> {}
 
 export class ProgramaSocial extends Model<ProgramaSocialAttributes, ProgramaSocialCreationAttributes> implements ProgramaSocialAttributes {
-  public id!: number;
-  public nome!: string;
-  public descricao!: string | null;
-  public orgaoResponsavel!: string | null;
-  public dataInicio!: string | Date | null;
-  public dataFim!: string | Date | null;
-  public ativo!: boolean;
+  public declare id: number;
+  public declare nome: string;
+  public declare descricao: string | null;
+  public declare orgaoResponsavel: string | null;
+  public declare dataInicio: string | Date | null;
+  public declare dataFim: string | Date | null;
+  public declare ativo: boolean;
 }
 
 ProgramaSocial.init(

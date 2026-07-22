@@ -10,9 +10,9 @@ export interface BeneficiarioProgramaAttributes {
 export interface BeneficiarioProgramaCreationAttributes extends Optional<BeneficiarioProgramaAttributes, "dataInclusao"> {}
 
 export class BeneficiarioPrograma extends Model<BeneficiarioProgramaAttributes, BeneficiarioProgramaCreationAttributes> implements BeneficiarioProgramaAttributes {
-  public beneficiarioId!: number;
-  public programaId!: number;
-  public readonly dataInclusao!: Date;
+  public declare beneficiarioId: number;
+  public declare programaId: number;
+  public declare readonly dataInclusao: Date;
 }
 
 BeneficiarioPrograma.init(

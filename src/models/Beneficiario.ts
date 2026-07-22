@@ -16,15 +16,15 @@ export interface BeneficiarioAttributes {
 export interface BeneficiarioCreationAttributes extends Optional<BeneficiarioAttributes, "id" | "telefone" | "fotoUrl" | "situacaoSocial" | "createdAt"> {}
 
 export class Beneficiario extends Model<BeneficiarioAttributes, BeneficiarioCreationAttributes> implements BeneficiarioAttributes {
-  public id!: number;
-  public nome!: string;
-  public cpf!: string;
-  public dataNascimento!: string | Date;
-  public telefone!: string | null;
-  public fotoUrl!: string | null;
-  public situacaoSocial!: string | null;
-  public familiaId!: number;
-  public readonly createdAt!: Date;
+  public declare id: number;
+  public declare nome: string;
+  public declare cpf: string;
+  public declare dataNascimento: string | Date;
+  public declare telefone: string | null;
+  public declare fotoUrl: string | null;
+  public declare situacaoSocial: string | null;
+  public declare familiaId: number;
+  public declare readonly createdAt: Date;
 }
 
 Beneficiario.init(

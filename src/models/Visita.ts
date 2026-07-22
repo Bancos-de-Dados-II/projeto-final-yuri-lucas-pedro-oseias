@@ -16,15 +16,15 @@ export interface VisitaAttributes {
 export interface VisitaCreationAttributes extends Optional<VisitaAttributes, "id" | "observacoes" | "acoesRealizadas" | "createdAt"> {}
 
 export class Visita extends Model<VisitaAttributes, VisitaCreationAttributes> implements VisitaAttributes {
-  public id!: number;
-  public dataVisita!: Date;
-  public observacoes!: string | null;
-  public acoesRealizadas!: string | null;
-  public latitude!: number;
-  public longitude!: number;
-  public beneficiarioId!: number;
-  public usuarioId!: number;
-  public readonly createdAt!: Date;
+  public declare id: number;
+  public declare dataVisita: Date;
+  public declare observacoes: string | null;
+  public declare acoesRealizadas: string | null;
+  public declare latitude: number;
+  public declare longitude: number;
+  public declare beneficiarioId: number;
+  public declare usuarioId: number;
+  public declare readonly createdAt: Date;
 }
 
 Visita.init(

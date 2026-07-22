@@ -20,14 +20,14 @@ export interface UsuarioAttributes {
 export interface UsuarioCreationAttributes extends Optional<UsuarioAttributes, "id" | "fotoUrl" | "createdAt" | "updatedAt"> {}
 
 export class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes> implements UsuarioAttributes {
-  public id!: number;
-  public nome!: string;
-  public email!: string;
-  public senhaHash!: string;
-  public tipo!: TipoUsuario;
-  public fotoUrl!: string | null;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  public declare id: number;
+  public declare nome: string;
+  public declare email: string;
+  public declare senhaHash: string;
+  public declare tipo: TipoUsuario;
+  public declare fotoUrl: string | null;
+  public declare readonly createdAt: Date;
+  public declare readonly updatedAt: Date;
 }
 
 Usuario.init(

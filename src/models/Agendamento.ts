@@ -22,14 +22,14 @@ export interface AgendamentoAttributes {
 export interface AgendamentoCreationAttributes extends Optional<AgendamentoAttributes, "id" | "status" | "observacoes" | "createdAt"> {}
 
 export class Agendamento extends Model<AgendamentoAttributes, AgendamentoCreationAttributes> implements AgendamentoAttributes {
-  public id!: number;
-  public dataAgendamento!: string | Date;
-  public hora!: string;
-  public status!: StatusAgendamento;
-  public observacoes!: string | null;
-  public beneficiarioId!: number;
-  public usuarioId!: number;
-  public readonly createdAt!: Date;
+  public declare id: number;
+  public declare dataAgendamento: string | Date;
+  public declare hora: string;
+  public declare status: StatusAgendamento;
+  public declare observacoes: string | null;
+  public declare beneficiarioId: number;
+  public declare usuarioId: number;
+  public declare readonly createdAt: Date;
 }
 
 Agendamento.init(
