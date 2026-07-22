@@ -292,6 +292,9 @@
 
       tbody.innerHTML = filtered.map(user => {
         const initials = user.nome ? user.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'US';
+        const avatarContent = user.fotoUrl
+          ? `<img src="${user.fotoUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`
+          : initials;
         const isSelf = currentUser && currentUser.id === user.id;
         const roleBadge = user.tipo === 'administrador'
           ? '<span class="role-badge role-admin">Administrador</span>'
@@ -301,7 +304,7 @@
           <tr>
             <td>
               <div class="person-cell">
-                <div class="person-cell__avatar">${initials}</div>
+                <div class="person-cell__avatar" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">${avatarContent}</div>
                 <div>
                   <strong>${user.nome}</strong>
                   <span>${user.email}</span>
