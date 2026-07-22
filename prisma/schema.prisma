@@ -1,14 +1,13 @@
-// GeoPB Comunidades - Schema Prisma
-// Modelo relacional (PostgreSQL) baseado no modelo conceitual do documento
-// de requisitos (Seção 6 - Projeto do Banco de Dados)
-
+// GeoPB Comunidades - Schema Prisma com Suporte a PostGIS
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
 }
 
 enum TipoUsuario {
@@ -40,14 +39,15 @@ model Usuario {
 }
 
 model Familia {
-  id              Int      @id @default(autoincrement())
-  nomeResponsavel String   @map("nome_responsavel")
+  id              Int                            @id @default(autoincrement())
+  nomeResponsavel String                         @map("nome_responsavel")
   endereco        String
-  latitude        Decimal  @db.Decimal(9, 6)
-  longitude       Decimal  @db.Decimal(9, 6)
-  rendaFamiliar   Decimal? @map("renda_familiar") @db.Decimal(10, 2)
-  qtdMembros      Int      @map("qtd_membros")
-  createdAt       DateTime @default(now()) @map("created_at")
+  latitude        Decimal                        @db.Decimal(9, 6)
+  longitude       Decimal                        @db.Decimal(9, 6)
+  localizacao     Unsupported("geometry(Point, 4326)")?
+  rendaFamiliar   Decimal?                       @map("renda_familiar") @db.Decimal(10, 2)
+  qtdMembros      Int                            @map("qtd_membros")
+  createdAt       DateTime                       @default(now()) @map("created_at")
 
   beneficiarios   Beneficiario[]
 
@@ -74,15 +74,16 @@ model Beneficiario {
 }
 
 model Visita {
-  id               Int      @id @default(autoincrement())
-  dataVisita       DateTime @map("data_visita")
+  id               Int                            @id @default(autoincrement())
+  dataVisita       DateTime                       @map("data_visita")
   observacoes      String?
-  acoesRealizadas  String?  @map("acoes_realizadas")
-  latitude         Decimal  @db.Decimal(9, 6)
-  longitude        Decimal  @db.Decimal(9, 6)
-  beneficiarioId   Int      @map("beneficiario_id")
-  usuarioId        Int      @map("usuario_id")
-  createdAt        DateTime @default(now()) @map("created_at")
+  acoesRealizadas  String?                        @map("acoes_realizadas")
+  latitude         Decimal                        @db.Decimal(9, 6)
+  longitude        Decimal                        @db.Decimal(9, 6)
+  localizacao      Unsupported("geometry(Point, 4326)")?
+  beneficiarioId   Int                            @map("beneficiario_id")
+  usuarioId        Int                            @map("usuario_id")
+  createdAt        DateTime                       @default(now()) @map("created_at")
 
   beneficiario     Beneficiario @relation(fields: [beneficiarioId], references: [id])
   usuario          Usuario      @relation(fields: [usuarioId], references: [id])
@@ -115,7 +116,7 @@ model Agendamento {
   createdAt         DateTime          @default(now()) @map("created_at")
 
   beneficiario      Beneficiario @relation(fields: [beneficiarioId], references: [id])
-  usuario           Usuario      @relation(fields: [usuarioId], references: [id])
+  usuario          Usuario      @relation(fields: [usuarioId], references: [id])
 
   @@map("tb_agendamento")
 }

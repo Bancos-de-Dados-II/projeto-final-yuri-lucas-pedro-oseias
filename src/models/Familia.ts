@@ -7,12 +7,13 @@ export interface FamiliaAttributes {
   endereco: string;
   latitude: number;
   longitude: number;
+  localizacao?: any;
   rendaFamiliar?: number | null;
   qtdMembros: number;
   createdAt?: Date;
 }
 
-export interface FamiliaCreationAttributes extends Optional<FamiliaAttributes, "id" | "rendaFamiliar" | "createdAt"> {}
+export interface FamiliaCreationAttributes extends Optional<FamiliaAttributes, "id" | "localizacao" | "rendaFamiliar" | "createdAt"> {}
 
 export class Familia extends Model<FamiliaAttributes, FamiliaCreationAttributes> implements FamiliaAttributes {
   public declare id: number;
@@ -20,6 +21,7 @@ export class Familia extends Model<FamiliaAttributes, FamiliaCreationAttributes>
   public declare endereco: string;
   public declare latitude: number;
   public declare longitude: number;
+  public declare localizacao: any;
   public declare rendaFamiliar: number | null;
   public declare qtdMembros: number;
   public declare readonly createdAt: Date;
@@ -48,6 +50,10 @@ Familia.init(
     longitude: {
       type: DataTypes.DECIMAL(9, 6),
       allowNull: false,
+    },
+    localizacao: {
+      type: DataTypes.GEOMETRY("POINT", 4326),
+      allowNull: true,
     },
     rendaFamiliar: {
       type: DataTypes.DECIMAL(10, 2),
