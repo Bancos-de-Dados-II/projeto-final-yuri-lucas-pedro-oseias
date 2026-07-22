@@ -51,15 +51,21 @@ export class AuthController {
   async logout(req: Request, res: Response) {
     try {
       const authHeader = req.headers.authorization;
-      if (authHeader) {
-        const parts = authHeader.split(" ");
-        if (parts.length === 2 && parts[0] === "Bearer") {
-          const token = parts[1];
-          await sessionService.destroySession(token);
-        }
+      if (!authHeader) {
+        return res.status(400).json({ error: "Cabeçalho de autorização ausente." });
       }
 
-      return res.json({ message: "Logout realizado com sucesso." });
+      const parts = authHeader.split(" ");
+      if (parts.length !== 2 || parts[0] !== "Bearer") {
+        return res.status(400).json({ error: "Formato de token inválido." });
+      }
+
+      const token = parts[1];
+
+      // Invalida e destrói a chave da sessão no Redis
+      await sessionService.destroySession(token);
+
+      return res.json({ message: "Logout realizado com sucesso. Sessão invalidada no Redis." });
     } catch (error) {
       console.error("Erro ao realizar logout:", error);
       return res.status(500).json({ error: "Erro interno ao realizar logout." });
