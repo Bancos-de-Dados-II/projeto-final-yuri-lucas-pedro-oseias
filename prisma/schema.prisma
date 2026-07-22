@@ -1,0 +1,133 @@
+// GeoPB Comunidades - Schema Prisma
+// Modelo relacional (PostgreSQL) baseado no modelo conceitual do documento
+// de requisitos (Seção 6 - Projeto do Banco de Dados)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TipoUsuario {
+  administrador
+  assistente_social
+}
+
+enum StatusAgendamento {
+  pendente
+  confirmado
+  realizado
+  cancelado
+}
+
+model Usuario {
+  id          Int         @id @default(autoincrement())
+  nome        String
+  email       String      @unique
+  senhaHash   String      @map("senha_hash")
+  tipo        TipoUsuario
+  fotoUrl     String?     @map("foto_url")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  visitas       Visita[]
+  agendamentos  Agendamento[]
+
+  @@map("tb_usuario")
+}
+
+model Familia {
+  id              Int      @id @default(autoincrement())
+  nomeResponsavel String   @map("nome_responsavel")
+  endereco        String
+  latitude        Decimal  @db.Decimal(9, 6)
+  longitude       Decimal  @db.Decimal(9, 6)
+  rendaFamiliar   Decimal? @map("renda_familiar") @db.Decimal(10, 2)
+  qtdMembros      Int      @map("qtd_membros")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  beneficiarios   Beneficiario[]
+
+  @@map("tb_familia")
+}
+
+model Beneficiario {
+  id              Int      @id @default(autoincrement())
+  nome            String
+  cpf             String   @unique
+  dataNascimento  DateTime @map("data_nascimento") @db.Date
+  telefone        String?
+  fotoUrl         String?  @map("foto_url")
+  situacaoSocial  String?  @map("situacao_social")
+  familiaId       Int      @map("familia_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  familia         Familia               @relation(fields: [familiaId], references: [id])
+  visitas         Visita[]
+  agendamentos    Agendamento[]
+  programas       BeneficiarioPrograma[]
+
+  @@map("tb_beneficiario")
+}
+
+model Visita {
+  id               Int      @id @default(autoincrement())
+  dataVisita       DateTime @map("data_visita")
+  observacoes      String?
+  acoesRealizadas  String?  @map("acoes_realizadas")
+  latitude         Decimal  @db.Decimal(9, 6)
+  longitude        Decimal  @db.Decimal(9, 6)
+  beneficiarioId   Int      @map("beneficiario_id")
+  usuarioId        Int      @map("usuario_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  beneficiario     Beneficiario @relation(fields: [beneficiarioId], references: [id])
+  usuario          Usuario      @relation(fields: [usuarioId], references: [id])
+
+  @@map("tb_visita")
+}
+
+model ProgramaSocial {
+  id                Int       @id @default(autoincrement())
+  nome              String
+  descricao         String?
+  orgaoResponsavel  String?   @map("orgao_responsavel")
+  dataInicio        DateTime? @map("data_inicio") @db.Date
+  dataFim           DateTime? @map("data_fim") @db.Date
+  ativo             Boolean   @default(true)
+
+  beneficiarios     BeneficiarioPrograma[]
+
+  @@map("tb_programa_social")
+}
+
+model Agendamento {
+  id                Int               @id @default(autoincrement())
+  dataAgendamento   DateTime          @map("data_agendamento") @db.Date
+  hora              DateTime          @db.Time
+  status            StatusAgendamento @default(pendente)
+  observacoes       String?
+  beneficiarioId    Int               @map("beneficiario_id")
+  usuarioId         Int               @map("usuario_id")
+  createdAt         DateTime          @default(now()) @map("created_at")
+
+  beneficiario      Beneficiario @relation(fields: [beneficiarioId], references: [id])
+  usuario           Usuario      @relation(fields: [usuarioId], references: [id])
+
+  @@map("tb_agendamento")
+}
+
+model BeneficiarioPrograma {
+  beneficiarioId  Int      @map("beneficiario_id")
+  programaId      Int      @map("programa_id")
+  dataInclusao    DateTime @default(now()) @map("data_inclusao")
+
+  beneficiario    Beneficiario   @relation(fields: [beneficiarioId], references: [id])
+  programa        ProgramaSocial @relation(fields: [programaId], references: [id])
+
+  @@id([beneficiarioId, programaId])
+  @@map("tb_beneficiario_programa")
+}
