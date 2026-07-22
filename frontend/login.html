@@ -151,8 +151,8 @@
   const toggleBtn = document.getElementById('togglePassword');
   const passwordInput = document.getElementById('password');
 
-  // Define a base da API dinamicamente
-  const API_URL = window.location.protocol === 'file:' ? 'http://localhost:3333' : '';
+  // Define a URL base da API (port 3333) funcionando em qualquer origem (file://, Live Server ou server Express)
+  const API_URL = window.location.origin.includes(':3333') ? '' : 'http://localhost:3333';
 
   toggleBtn.addEventListener('click', () => {
     const isHidden = passwordInput.type === 'password';
