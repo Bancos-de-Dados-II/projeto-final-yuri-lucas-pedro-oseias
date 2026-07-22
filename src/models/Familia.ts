@@ -1,0 +1,70 @@
+import { DataTypes, Model, Optional } from "sequelize";
+import { sequelize } from "../database/sequelize.ts";
+
+export interface FamiliaAttributes {
+  id: number;
+  nomeResponsavel: string;
+  endereco: string;
+  latitude: number;
+  longitude: number;
+  rendaFamiliar?: number | null;
+  qtdMembros: number;
+  createdAt?: Date;
+}
+
+export interface FamiliaCreationAttributes extends Optional<FamiliaAttributes, "id" | "rendaFamiliar" | "createdAt"> {}
+
+export class Familia extends Model<FamiliaAttributes, FamiliaCreationAttributes> implements FamiliaAttributes {
+  public id!: number;
+  public nomeResponsavel!: string;
+  public endereco!: string;
+  public latitude!: number;
+  public longitude!: number;
+  public rendaFamiliar!: number | null;
+  public qtdMembros!: number;
+  public readonly createdAt!: Date;
+}
+
+Familia.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    nomeResponsavel: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      field: "nome_responsavel",
+    },
+    endereco: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    latitude: {
+      type: DataTypes.DECIMAL(9, 6),
+      allowNull: false,
+    },
+    longitude: {
+      type: DataTypes.DECIMAL(9, 6),
+      allowNull: false,
+    },
+    rendaFamiliar: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      field: "renda_familiar",
+    },
+    qtdMembros: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      field: "qtd_membros",
+    },
+  },
+  {
+    sequelize,
+    tableName: "tb_familia",
+    underscored: true,
+    timestamps: true,
+    updatedAt: false,
+  }
+);
