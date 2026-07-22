@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar · GeoPB Comunidades</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="login-screen">
+
+  <!-- ============ Painel de identidade ============ -->
+  <section class="identity-panel">
+    <svg class="identity-panel__map" viewBox="0 0 500 640" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <!-- Nuvem de pontos representando os 223 municípios da Paraíba -->
+      <g fill="#3E6577">
+        <!-- gerado como cluster disperso, formando silhueta orgânica -->
+        <circle cx="120" cy="80" r="2.4"/><circle cx="150" cy="70" r="2"/><circle cx="180" cy="90" r="2.6"/>
+        <circle cx="210" cy="75" r="2"/><circle cx="240" cy="95" r="2.2"/><circle cx="270" cy="80" r="2"/>
+        <circle cx="300" cy="100" r="2.4"/><circle cx="330" cy="88" r="2"/><circle cx="100" cy="120" r="2.2"/>
+        <circle cx="135" cy="115" r="2"/><circle cx="165" cy="130" r="2.6"/><circle cx="195" cy="118" r="2"/>
+        <circle cx="225" cy="135" r="2.3"/><circle cx="255" cy="120" r="2"/><circle cx="285" cy="140" r="2.4"/>
+        <circle cx="315" cy="125" r="2"/><circle cx="345" cy="145" r="2.2"/><circle cx="90" cy="160" r="2"/>
+        <circle cx="120" cy="170" r="2.4"/><circle cx="150" cy="155" r="2"/><circle cx="180" cy="175" r="2.6"/>
+        <circle cx="210" cy="160" r="2"/><circle cx="240" cy="180" r="2.2"/><circle cx="270" cy="165" r="2"/>
+        <circle cx="300" cy="185" r="2.4"/><circle cx="330" cy="170" r="2"/><circle cx="360" cy="190" r="2.2"/>
+        <circle cx="105" cy="210" r="2"/><circle cx="135" cy="200" r="2.4"/><circle cx="165" cy="220" r="2"/>
+        <circle cx="195" cy="205" r="2.6"/><circle cx="225" cy="225" r="2"/><circle cx="255" cy="210" r="2.2"/>
+        <circle cx="285" cy="230" r="2"/><circle cx="315" cy="215" r="2.4"/><circle cx="345" cy="235" r="2"/>
+        <circle cx="120" cy="250" r="2.2"/><circle cx="150" cy="245" r="2"/><circle cx="180" cy="265" r="2.4"/>
+        <circle cx="210" cy="250" r="2"/><circle cx="240" cy="270" r="2.6"/><circle cx="270" cy="255" r="2"/>
+        <circle cx="300" cy="275" r="2.2"/><circle cx="330" cy="260" r="2"/><circle cx="135" cy="290" r="2.4"/>
+        <circle cx="165" cy="285" r="2"/><circle cx="195" cy="305" r="2.2"/><circle cx="225" cy="290" r="2"/>
+        <circle cx="255" cy="310" r="2.4"/><circle cx="285" cy="295" r="2"/><circle cx="315" cy="315" r="2.2"/>
+        <circle cx="150" cy="330" r="2"/><circle cx="180" cy="325" r="2.4"/><circle cx="210" cy="345" r="2"/>
+        <circle cx="240" cy="330" r="2.6"/><circle cx="270" cy="350" r="2"/><circle cx="300" cy="335" r="2.2"/>
+        <circle cx="165" cy="370" r="2"/><circle cx="195" cy="365" r="2.4"/><circle cx="225" cy="385" r="2"/>
+        <circle cx="255" cy="370" r="2.2"/><circle cx="285" cy="390" r="2"/><circle cx="180" cy="410" r="2.4"/>
+        <circle cx="210" cy="405" r="2"/><circle cx="240" cy="425" r="2.2"/><circle cx="270" cy="410" r="2"/>
+        <circle cx="195" cy="450" r="2"/><circle cx="225" cy="445" r="2.4"/><circle cx="255" cy="460" r="2"/>
+      </g>
+      <!-- rota conectando comunidades visitadas -->
+      <path d="M120 170 L195 205 L255 210 L240 270 L210 345" fill="none" stroke="#BC5B3B" stroke-width="1.2" stroke-dasharray="1 5" stroke-linecap="round" opacity="0.85"/>
+      <!-- marcadores de comunidades -->
+      <g>
+        <circle cx="195" cy="205" r="6" fill="#BC5B3B" opacity="0.18"/>
+        <circle cx="195" cy="205" r="3" fill="#E9C9B4"/>
+        <circle cx="240" cy="270" r="6" fill="#BC5B3B" opacity="0.18"/>
+        <circle cx="240" cy="270" r="3" fill="#E9C9B4"/>
+        <circle cx="210" cy="345" r="7" fill="#BC5B3B" opacity="0.22"/>
+        <circle cx="210" cy="345" r="3.5" fill="#F1EAE0"/>
+      </g>
+    </svg>
+    <div class="identity-panel__scrim" aria-hidden="true"></div>
+
+    <div class="identity-panel__content">
+      <div class="brand">
+        <span class="brand__mark" aria-hidden="true"></span>
+        GeoPB · Sistema de Gestão de Comunidades
+      </div>
+
+      <div class="identity-panel__headline">
+        <p class="identity-panel__eyebrow">Assistência social · Paraíba</p>
+        <h1>Cada família tem um lugar no mapa — e uma história para acompanhar.</h1>
+        <p>Centralize cadastros, visitas domiciliares georreferenciadas e programas sociais em um só lugar, acessível de qualquer navegador.</p>
+      </div>
+
+      <dl class="identity-stats">
+        <div>
+          <dt>223</dt>
+          <dd>municípios cobertos</dd>
+        </div>
+        <div>
+          <dt>4</dt>
+          <dd>camadas de dados integradas</dd>
+        </div>
+        <div>
+          <dt>1:1</dt>
+          <dd>família por coordenada</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ============ Painel do formulário ============ -->
+  <section class="form-panel">
+    <div class="login-card">
+
+      <div class="login-card__header">
+        <span class="kicker">Acesso ao sistema</span>
+        <h2>Entrar na sua conta</h2>
+        <p>Use o e-mail institucional cadastrado pelo administrador do CRAS.</p>
+      </div>
+
+      <div class="form-error" id="loginError" role="alert">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11a.75.75 0 00-1.5 0v4a.75.75 0 001.5 0V7zm-.75 6.5a.875.875 0 100 1.75.875.875 0 000-1.75z" clip-rule="evenodd"/></svg>
+        <span>E-mail ou senha incorretos. Verifique os dados e tente novamente.</span>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="email">E-mail</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 5.5A1.5 1.5 0 014 4h12a1.5 1.5 0 011.5 1.5v9A1.5 1.5 0 0116 16H4a1.5 1.5 0 01-1.5-1.5v-9z"/><path d="M3 5.5l7 5.5 7-5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <input type="email" id="email" name="email" placeholder="assistente@cras.pb.gov.br" autocomplete="username" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">Senha</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="8.5" width="12" height="8" rx="1.5"/><path d="M6.5 8.5V6a3.5 3.5 0 017 0v2.5" stroke-linecap="round"/></svg>
+            <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+            <button type="button" class="password-toggle" id="togglePassword" aria-label="Mostrar senha">MOSTRAR</button>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label class="checkbox">
+            <input type="checkbox" name="remember">
+            Manter conectado
+          </label>
+          <a href="#" class="link-quiet">Esqueci minha senha</a>
+        </div>
+
+        <button type="submit" class="btn-primary">
+          Entrar
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10h12M11 5l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </form>
+
+      <div class="login-card__footer">
+        Não tem acesso? Procure o administrador do seu CRAS para solicitar um cadastro.
+      </div>
+
+      <div class="login-card__meta">
+        <span>GeoPB Comunidades · v1.0</span>
+        <span>IFPB · Cajazeiras</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const form = document.getElementById('loginForm');
+  const errorBox = document.getElementById('loginError');
+  const toggleBtn = document.getElementById('togglePassword');
+  const passwordInput = document.getElementById('password');
+
+  // Define a base da API dinamicamente
+  const API_URL = window.location.protocol === 'file:' ? 'http://localhost:3333' : '';
+
+  toggleBtn.addEventListener('click', () => {
+    const isHidden = passwordInput.type === 'password';
+    passwordInput.type = isHidden ? 'text' : 'password';
+    toggleBtn.textContent = isHidden ? 'OCULTAR' : 'MOSTRAR';
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBox.classList.remove('is-visible');
+
+    const email = form.email.value.trim();
+    const senha = form.password.value;
+
+    if (!email || !senha) {
+      errorBox.querySelector('span').textContent = 'Preencha e-mail e senha para continuar.';
+      errorBox.classList.add('is-visible');
+      return;
+    }
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Autenticando...';
+
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, senha }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao realizar login.');
+      }
+
+      // Salva o token JWT e dados do usuário logado
+      localStorage.setItem('geopb_token', data.token);
+      localStorage.setItem('geopb_user', JSON.stringify(data.user));
+
+      // Redireciona para a página dashboard.html
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      errorBox.querySelector('span').textContent = err.message || 'Falha ao conectar com o servidor.';
+      errorBox.classList.add('is-visible');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+    }
+  });
+</script>
+
+</body>
+</html>
