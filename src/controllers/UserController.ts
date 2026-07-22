@@ -136,8 +136,11 @@ export class UserController {
         return res.status(400).json({ error: "ID inválido." });
       }
 
+      // Regra de negócio: Impedir a exclusão do próprio usuário logado
       if (req.user && req.user.id === id) {
-        return res.status(400).json({ error: "Você não pode deletar sua própria conta de administrador." });
+        return res.status(400).json({
+          error: "Regra de negócio violada: Não é permitido excluir a sua própria conta enquanto estiver logado.",
+        });
       }
 
       const deletado = await userRepository.delete(id);
