@@ -56,7 +56,7 @@ Usuario.init(
       allowNull: false,
     },
     fotoUrl: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
       field: "foto_url",
     },
