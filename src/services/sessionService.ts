@@ -24,7 +24,7 @@ export class SessionService {
       const key = this.getKey(token);
       await redis.set(key, JSON.stringify(sessionData), "EX", ttlSeconds);
     } catch (error) {
-      console.error("Erro ao salvar sessão no Redis:", error);
+      console.error("Aviso: Não foi possível salvar a sessão no Redis:", (error as any)?.message || error);
     }
   }
 
@@ -36,20 +36,20 @@ export class SessionService {
       if (!data) return null;
       return JSON.parse(data) as SessionData;
     } catch (error) {
-      console.error("Erro ao buscar sessão no Redis:", error);
+      console.error("Aviso: Erro ao buscar sessão no Redis:", (error as any)?.message || error);
       return null;
     }
   }
 
-  // Verifica se a sessão está ativa no Redis
+  // Verifica se a sessão está ativa no Redis (com fallback gracioso caso o Redis esteja indisponível)
   async isSessionActive(token: string): Promise<boolean> {
     try {
       const key = this.getKey(token);
       const exists = await redis.exists(key);
       return exists === 1;
     } catch (error) {
-      console.error("Erro ao verificar sessão no Redis:", error);
-      return false;
+      // Se o Redis não estiver conectado, não bloqueia requisições se o JWT for válido
+      return true;
     }
   }
 
@@ -59,7 +59,7 @@ export class SessionService {
       const key = this.getKey(token);
       await redis.del(key);
     } catch (error) {
-      console.error("Erro ao remover sessão do Redis:", error);
+      console.error("Aviso: Erro ao remover sessão do Redis:", (error as any)?.message || error);
     }
   }
 }

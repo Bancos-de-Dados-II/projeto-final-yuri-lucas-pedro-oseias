@@ -1,0 +1,233 @@
+import express from "express";
+import cors from "cors";
+import path from "path";
+import fs from "fs";
+import { routes } from "../src/routes/index.ts";
+import { sequelize } from "../src/database/sequelize.ts";
+
+const app = express();
+
+const uploadsPath = path.resolve("uploads");
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath, { recursive: true });
+}
+
+app.use(cors());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use("/uploads", express.static(uploadsPath));
+app.use(routes);
+
+async function runAutomatedTests() {
+  console.log("==================================================");
+  console.log("   EXECUTANDO TESTES AUTOMATIZADOS DO SISTEMA    ");
+  console.log("==================================================\n");
+
+  await sequelize.authenticate();
+  await sequelize.sync();
+
+  const server = app.listen(0);
+  const address = server.address() as any;
+  const baseUrl = `http://localhost:${address.port}`;
+
+  let passed = 0;
+  let failed = 0;
+
+  function assert(condition: boolean, testName: string, detail?: string) {
+    if (condition) {
+      console.log(`[PASS] ✓ ${testName}`);
+      passed++;
+    } else {
+      console.log(`[FAIL] ❌ ${testName}${detail ? ` -> ${detail}` : ""}`);
+      failed++;
+    }
+  }
+
+  try {
+    // ----------------------------------------------------
+    // TESTE 1: Login de Usuário (Autenticação)
+    // ----------------------------------------------------
+    const loginRes = await fetch(`${baseUrl}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "admin@geopb.gov.br", senha: "admin123" }),
+    });
+
+    const loginData = await loginRes.json();
+    assert(loginRes.status === 200 && !!loginData.token, "1. Autenticação de Usuário (POST /auth/login)");
+    const token = loginData.token;
+    const authHeaders = { Authorization: `Bearer ${token}` };
+
+    // ----------------------------------------------------
+    // TESTE 2: Upload de Arquivo com Multer (POST /upload)
+    // ----------------------------------------------------
+    const dummyFilePath = path.resolve("uploads/test_dummy.png");
+    fs.writeFileSync(dummyFilePath, Buffer.from("fake image data content"));
+
+    const formData = new FormData();
+    const blob = new Blob([fs.readFileSync(dummyFilePath)], { type: "image/png" });
+    formData.append("file", blob, "foto_teste.png");
+
+    const uploadRes = await fetch(`${baseUrl}/upload`, {
+      method: "POST",
+      headers: { ...authHeaders },
+      body: formData,
+    });
+    const uploadData = await uploadRes.json();
+    assert(
+      uploadRes.status === 201 && typeof uploadData.url === "string",
+      "2. Upload Genérico com Multer (POST /upload)",
+      JSON.stringify(uploadData)
+    );
+    const uploadedFotoUrl = uploadData.url;
+
+    // ----------------------------------------------------
+    // TESTE 3: Validação de Lat/Long Obrigatórios na Família
+    // ----------------------------------------------------
+    const invalidFamRes = await fetch(`${baseUrl}/familias`, {
+      method: "POST",
+      headers: { ...authHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nomeResponsavel: "Família Teste Sem Lat/Long",
+        endereco: "Rua Teste, 123",
+        qtdMembros: 3,
+        // latitude e longitude omitidos intencionalmente
+      }),
+    });
+    const invalidFamData = await invalidFamRes.json();
+    assert(
+      invalidFamRes.status === 400 && invalidFamData.error.includes("Latitude e Longitude são obrigatórias"),
+      "3. Validação de Lat/Long Obrigatórios ao cadastrar Família"
+    );
+
+    // ----------------------------------------------------
+    // TESTE 4: Cadastro Completo de Família (Lat/Long Válidos)
+    // ----------------------------------------------------
+    const createFamRes = await fetch(`${baseUrl}/familias`, {
+      method: "POST",
+      headers: { ...authHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nomeResponsavel: "Família Silva Pereira (Teste Automated)",
+        endereco: "Av. Pres. Epitácio Pessoa, 1500, João Pessoa - PB",
+        latitude: -7.11532,
+        longitude: -34.861,
+        rendaFamiliar: 1850.50,
+        qtdMembros: 4,
+      }),
+    });
+    const createdFam = await createFamRes.json();
+    assert(
+      createFamRes.status === 201 && createdFam.id > 0,
+      "4. CRUD Família - Criação com sucesso (POST /familias)"
+    );
+    const familiaId = createdFam.id;
+
+    // ----------------------------------------------------
+    // TESTE 5: Listagem de Famílias (GET /familias)
+    // ----------------------------------------------------
+    const listFamRes = await fetch(`${baseUrl}/familias`, { headers: authHeaders });
+    const listFamData = await listFamRes.json();
+    assert(
+      listFamRes.status === 200 && Array.isArray(listFamData) && listFamData.some((f: any) => f.id === familiaId),
+      "5. CRUD Família - Listagem de famílias (GET /familias)"
+    );
+
+    // ----------------------------------------------------
+    // TESTE 6: Cadastro de Beneficiário Vinculado à Família + Foto
+    // ----------------------------------------------------
+    const uniqueCpf = `999.${Math.floor(100 + Math.random() * 900)}.${Math.floor(100 + Math.random() * 900)}-88`;
+    const createBenRes = await fetch(`${baseUrl}/beneficiarios`, {
+      method: "POST",
+      headers: { ...authHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nome: "João Carlos da Silva",
+        cpf: uniqueCpf,
+        dataNascimento: "1990-05-15",
+        telefone: "(83) 98888-7777",
+        fotoUrl: uploadedFotoUrl,
+        situacaoSocial: "Vulnerabilidade Alta",
+        familiaId: familiaId,
+      }),
+    });
+    const createdBen = await createBenRes.json();
+    assert(
+      createBenRes.status === 201 && createdBen.id > 0 && createdBen.fotoUrl === uploadedFotoUrl,
+      "6. CRUD Beneficiário - Cadastro vinculado à Família com Foto (POST /beneficiarios)"
+    );
+    const beneficiarioId = createdBen.id;
+
+    // ----------------------------------------------------
+    // TESTE 7: Validação de CPF Duplicado (Rejeição HTTP 400)
+    // ----------------------------------------------------
+    const dupCpfRes = await fetch(`${baseUrl}/beneficiarios`, {
+      method: "POST",
+      headers: { ...authHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nome: "Outro Nome Com Mesmo CPF",
+        cpf: uniqueCpf, // CPF duplicado!
+        dataNascimento: "1995-10-20",
+        familiaId: familiaId,
+      }),
+    });
+    const dupCpfData = await dupCpfRes.json();
+    assert(
+      dupCpfRes.status === 400 && dupCpfData.error.includes("Já existe um beneficiário cadastrado com este CPF"),
+      "7. Validação de CPF Duplicado (Impedir cadastro repetido)"
+    );
+
+    // ----------------------------------------------------
+    // TESTE 8: Busca por Nome / CPF e Filtro por Situação Social
+    // ----------------------------------------------------
+    const searchRes = await fetch(`${baseUrl}/beneficiarios?search=João&situacaoSocial=Vulnerabilidade%20Alta`, {
+      headers: authHeaders,
+    });
+    const searchData = await searchRes.json();
+    assert(
+      searchRes.status === 200 &&
+        Array.isArray(searchData) &&
+        searchData.some((b: any) => b.id === beneficiarioId && b.familia?.id === familiaId),
+      "8. Listagem com Busca (Nome/CPF) e Filtro por Situação Social (GET /beneficiarios?search=...)"
+    );
+
+    // ----------------------------------------------------
+    // TESTE 9: Atualização de Beneficiário (PUT /beneficiarios/:id)
+    // ----------------------------------------------------
+    const updateBenRes = await fetch(`${baseUrl}/beneficiarios/${beneficiarioId}`, {
+      method: "PUT",
+      headers: { ...authHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        situacaoSocial: "Vulnerabilidade Moderada",
+      }),
+    });
+    const updateBenData = await updateBenRes.json();
+    assert(
+      updateBenRes.status === 200 && updateBenData.situacaoSocial === "Vulnerabilidade Moderada",
+      "9. Edição de Beneficiário (PUT /beneficiarios/:id)"
+    );
+
+    // ----------------------------------------------------
+    // TESTE 10: Limpeza / Exclusão (DELETE)
+    // ----------------------------------------------------
+    const delBenRes = await fetch(`${baseUrl}/beneficiarios/${beneficiarioId}`, {
+      method: "DELETE",
+      headers: authHeaders,
+    });
+    assert(delBenRes.status === 200, "10. Remoção de Beneficiário (DELETE /beneficiarios/:id)");
+
+    const delFamRes = await fetch(`${baseUrl}/familias/${familiaId}`, {
+      method: "DELETE",
+      headers: authHeaders,
+    });
+    assert(delFamRes.status === 200, "11. Remoção de Família (DELETE /familias/:id)");
+
+  } catch (err: any) {
+    console.error("Erro fatal durante a execução dos testes:", err);
+  } finally {
+    server.close();
+    console.log("\n==================================================");
+    console.log(`   RESULTADO FINAL DOS TESTES: ${passed} PASSOU / ${failed} FALHOU`);
+    console.log("==================================================\n");
+  }
+}
+
+runAutomatedTests();
