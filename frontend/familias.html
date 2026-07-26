@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Famílias Georreferenciadas · GeoPB Comunidades</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  #familiasMap {
+    width: 100%;
+    height: 380px;
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--color-line, #E1D6C4);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    z-index: 1;
+  }
+  .map-container-box {
+    background: #fff;
+    padding: 1.25rem;
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--color-line, #E1D6C4);
+    margin-bottom: 1.5rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ Sidebar ============ -->
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <span class="brand__mark" aria-hidden="true"></span>
+      GeoPB Comunidades
+    </div>
+
+    <nav aria-label="Navegação principal">
+      <a href="dashboard.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1"/><rect x="11" y="2.5" width="6.5" height="6.5" rx="1"/><rect x="2.5" y="11" width="6.5" height="6.5" rx="1"/><rect x="11" y="11" width="6.5" height="6.5" rx="1"/></svg>
+        Dashboard
+      </a>
+
+      <div class="sidebar__section-label">Beneficiários</div>
+      <a href="beneficiarios.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="6.5" r="3"/><path d="M3.5 17c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" stroke-linecap="round"/></svg>
+        Beneficiários
+      </a>
+      <a href="familias.html" class="sidebar__link is-active">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="6" r="2.4"/><circle cx="14" cy="6" r="2.4"/><path d="M2.5 17c0-3 2-5 4.5-5s4.5 2 4.5 5M10.5 17c0-2.6 1.7-4.4 3.8-4.4S18 14.4 18 17" stroke-linecap="round"/></svg>
+        Famílias
+      </a>
+
+      <div class="sidebar__section-label">Administração</div>
+      <a href="usuarios.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="6.5" r="2.8"/><path d="M2.5 17c0-3.3 2.5-5.5 5.5-5.5" stroke-linecap="round"/><path d="M13 9l1.4 1.4L17 7.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Usuários do sistema
+      </a>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__user" id="sidebarUser">
+        <div class="sidebar__avatar" id="userAvatar">US</div>
+        <div class="sidebar__user-info">
+          <strong id="userName">Usuário</strong>
+          <span id="userRole">Assistente Social</span>
+        </div>
+        <button id="btnLogout" style="background: none; border: none; cursor: pointer; color: var(--c-rust-500, #BC5B3B); padding: 4px; margin-left: auto;" title="Sair do sistema">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M13 3h3a2 2 0 012 2v10a2 2 0 01-2 2h-3M9 14l4-4-4-4M13 10H3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ Coluna principal ============ -->
+  <div class="main-col">
+
+    <header class="topbar">
+      <div class="topbar__title">
+        <h1>Famílias Georreferenciadas</h1>
+        <p>Visualização geoespacial e gestão de cadastros familiares.</p>
+      </div>
+      <div class="topbar__actions">
+        <a href="familias-form.html" class="btn-accent">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 4v12M4 10h12" stroke-linecap="round"/></svg>
+          Nova Família
+        </a>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- ===== Indicadores ===== -->
+      <section class="stat-grid" aria-label="Indicadores das famílias" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="stat-card">
+          <div class="stat-card__top">
+            <div class="stat-card__icon tone-accent">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="6" r="2.4"/><circle cx="14" cy="6" r="2.4"/><path d="M2.5 17c0-3 2-5 4.5-5s4.5 2 4.5 5M10.5 17c0-2.6 1.7-4.4 3.8-4.4S18 14.4 18 17" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+          <div class="stat-card__value" id="statTotalFamilias">0</div>
+          <div class="stat-card__label">Famílias cadastradas</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card__top">
+            <div class="stat-card__icon tone-primary">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 2.5c-3 0-5.5 2.3-5.5 5.6 0 4.1 5.5 9.4 5.5 9.4s5.5-5.3 5.5-9.4c0-3.3-2.5-5.6-5.5-5.6z"/><circle cx="10" cy="8.1" r="1.9"/></svg>
+            </div>
+          </div>
+          <div class="stat-card__value" id="statMembros">0</div>
+          <div class="stat-card__label">Membros em famílias</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card__top">
+            <div class="stat-card__icon tone-success">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 2v16M6 6h8a2 2 0 010 4H6a2 2 0 000 4h8" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+          <div class="stat-card__value" id="statRendaMedia">R$ 0</div>
+          <div class="stat-card__label">Renda familiar média</div>
+        </div>
+      </section>
+
+      <!-- ===== Mapa Leaflet ===== -->
+      <div class="map-container-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
+          <h2 style="font-family: var(--font-display); font-size:1.15rem; margin:0;">Mapa de Localização das Famílias</h2>
+          <span style="font-size:0.85rem; color:var(--color-ink-soft);">Marcadores baseados nas coordenadas GPS</span>
+        </div>
+        <div id="familiasMap"></div>
+      </div>
+
+      <!-- ===== Tabela de Famílias ===== -->
+      <section class="panel">
+        <div class="panel__toolbar">
+          <div class="toolbar-search" style="width:100%;">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M16 16l-3.5-3.5" stroke-linecap="round"/></svg>
+            <input type="text" id="searchInput" placeholder="Buscar família por responsável ou endereço...">
+          </div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Responsável</th>
+              <th>Endereço</th>
+              <th>Coordenadas GPS</th>
+              <th>Qtd. Membros</th>
+              <th>Renda Familiar</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="familiasTableBody">
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 2rem; color: var(--c-ink-400);">Carregando famílias...</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="panel__footer">
+          <span id="footerCount">Exibindo 0 famílias</span>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  (function() {
+    const API_URL = window.location.origin.includes(':3333') ? '' : 'http://localhost:3333';
+    const token = localStorage.getItem('geopb_token');
+    const userRaw = localStorage.getItem('geopb_user');
+
+    if (!token) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    if (userRaw) {
+      try {
+        const user = JSON.parse(userRaw);
+        const nameEl = document.getElementById('userName');
+        const roleEl = document.getElementById('userRole');
+        const avatarEl = document.getElementById('userAvatar');
+        if (nameEl) nameEl.textContent = user.nome || 'Usuário';
+        if (roleEl) roleEl.textContent = user.tipo === 'administrador' ? 'Administrador' : 'Assistente Social';
+        if (avatarEl && user.nome) {
+          avatarEl.textContent = user.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    const btnLogout = document.getElementById('btnLogout');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', () => {
+        localStorage.removeItem('geopb_token');
+        localStorage.removeItem('geopb_user');
+        window.location.href = 'login.html';
+      });
+    }
+
+    let allFamilias = [];
+    let map = null;
+    let markersGroup = null;
+
+    // Inicializar Mapa Leaflet (centrado na Paraíba por padrão)
+    function initMap() {
+      map = L.map('familiasMap').setView([-6.8885, -38.5583], 12); // Cajazeiras/PB por padrão
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
+
+      markersGroup = L.layerGroup().addTo(map);
+    }
+
+    function renderMapMarkers(familias) {
+      if (!map || !markersGroup) return;
+      markersGroup.clearLayers();
+
+      const bounds = [];
+
+      familias.forEach(fam => {
+        const lat = parseFloat(fam.latitude);
+        const lng = parseFloat(fam.longitude);
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+          bounds.push([lat, lng]);
+
+          const marker = L.marker([lat, lng]).addTo(markersGroup);
+          marker.bindPopup(`
+            <div style="font-family: var(--font-body); padding: 4px;">
+              <strong style="color: var(--color-primary-dark); font-size:1rem;">Família: ${fam.nomeResponsavel}</strong><br/>
+              <span style="font-size:0.85rem; color: #555;">📍 ${fam.endereco}</span><br/>
+              <span style="font-size:0.85rem;">👥 ${fam.qtdMembros} membro(s)</span><br/>
+              <span style="font-size:0.8rem; color:#BC5B3B;">Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}</span><br/>
+              <div style="margin-top:6px;">
+                <a href="familias-form.html?id=${fam.id}" style="color: var(--color-primary); font-weight:bold; font-size:0.85rem;">Editar Família</a>
+              </div>
+            </div>
+          `);
+        }
+      });
+
+      if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+      }
+    }
+
+    async function fetchFamilias() {
+      try {
+        const response = await fetch(`${API_URL}/familias`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) {
+          throw new Error('Erro ao carregar famílias.');
+        }
+
+        allFamilias = await response.json();
+        updateStats();
+        renderTable();
+        renderMapMarkers(allFamilias);
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('statTotalFamilias').textContent = allFamilias.length;
+
+      const totalMembros = allFamilias.reduce((acc, f) => acc + Number(f.qtdMembros || 0), 0);
+      document.getElementById('statMembros').textContent = totalMembros;
+
+      const familiasComRenda = allFamilias.filter(f => f.rendaFamiliar !== null && f.rendaFamiliar !== undefined);
+      if (familiasComRenda.length > 0) {
+        const somaRenda = familiasComRenda.reduce((acc, f) => acc + Number(f.rendaFamiliar), 0);
+        const media = somaRenda / familiasComRenda.length;
+        document.getElementById('statRendaMedia').textContent = `R$ ${media.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      } else {
+        document.getElementById('statRendaMedia').textContent = 'R$ 0,00';
+      }
+    }
+
+    function renderTable() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      const filtered = allFamilias.filter(f =>
+        !q || f.nomeResponsavel.toLowerCase().includes(q) || f.endereco.toLowerCase().includes(q)
+      );
+
+      const tbody = document.getElementById('familiasTableBody');
+      document.getElementById('footerCount').textContent = `Exibindo ${filtered.length} de ${allFamilias.length} famílias`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--c-ink-400);">Nenhuma família encontrada.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(fam => `
+        <tr>
+          <td><strong>${fam.nomeResponsavel}</strong></td>
+          <td>${fam.endereco}</td>
+          <td><span class="tag tone-primary">${Number(fam.latitude).toFixed(5)}, ${Number(fam.longitude).toFixed(5)}</span></td>
+          <td>${fam.qtdMembros} pessoa(s)</td>
+          <td>${fam.rendaFamiliar ? 'R$ ' + Number(fam.rendaFamiliar).toLocaleString('pt-BR', {minimumFractionDigits:2}) : 'Não informada'}</td>
+          <td>
+            <div style="display:flex; gap: 0.5rem;">
+              <a href="familias-form.html?id=${fam.id}" class="btn-icon" title="Editar família" style="width:32px; height:32px;">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13.5 3.5l3 3-9 9-3.6.6.6-3.6z"/></svg>
+              </a>
+              <button class="btn-icon js-delete-familia" data-id="${fam.id}" data-nome="${fam.nomeResponsavel}" title="Excluir família" style="width:32px; height:32px; color: var(--color-accent);">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4.5 5.5h11M8 5.5V4a1 1 0 011-1h2a1 1 0 011 1v1.5M6 5.5l.6 10a1 1 0 001 1h4.8a1 1 0 001-1l.6-10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      attachDeleteEvents();
+    }
+
+    function attachDeleteEvents() {
+      document.querySelectorAll('.js-delete-familia').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          const nome = btn.getAttribute('data-nome');
+          if (confirm(`Deseja remover o cadastro da família de ${nome}?`)) {
+            try {
+              const res = await fetch(`${API_URL}/familias/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Erro ao deletar família.');
+              }
+              alert('Família removida com sucesso!');
+              fetchFamilias();
+            } catch (err) {
+              alert(err.message);
+            }
+          }
+        });
+      });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', () => {
+      renderTable();
+    });
+
+    initMap();
+    fetchFamilias();
+  })();
+</script>
+</body>
+</html>
