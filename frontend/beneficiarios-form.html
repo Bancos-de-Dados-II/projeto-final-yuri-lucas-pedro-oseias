@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastro de Beneficiário · GeoPB Comunidades</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .form-group.full-width {
+    grid-column: span 2;
+  }
+  .form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+  .form-group input, .form-group select {
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--color-line, #E1D6C4);
+    border-radius: var(--radius-md, 8px);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    background: #fff;
+  }
+  .form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(46, 82, 102, 0.15);
+  }
+  /* Estilo da caixa de upload de foto */
+  .photo-upload-box {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.25rem;
+    background: #FAF8F5;
+    border: 2px dashed var(--color-line, #E1D6C4);
+    border-radius: var(--radius-md, 8px);
+    margin-bottom: 0.5rem;
+  }
+  .photo-preview {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--color-primary-dark);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: 2px solid #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+  }
+  .btn-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    padding: 0.55rem 1rem;
+    border-radius: var(--radius-md, 8px);
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .btn-upload:hover {
+    background: var(--color-primary-dark);
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ Sidebar ============ -->
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <span class="brand__mark" aria-hidden="true"></span>
+      GeoPB Comunidades
+    </div>
+
+    <nav aria-label="Navegação principal">
+      <a href="dashboard.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1"/><rect x="11" y="2.5" width="6.5" height="6.5" rx="1"/><rect x="2.5" y="11" width="6.5" height="6.5" rx="1"/><rect x="11" y="11" width="6.5" height="6.5" rx="1"/></svg>
+        Dashboard
+      </a>
+
+      <div class="sidebar__section-label">Beneficiários</div>
+      <a href="beneficiarios.html" class="sidebar__link is-active">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="6.5" r="3"/><path d="M3.5 17c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" stroke-linecap="round"/></svg>
+        Beneficiários
+      </a>
+      <a href="familias.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="6" r="2.4"/><circle cx="14" cy="6" r="2.4"/><path d="M2.5 17c0-3 2-5 4.5-5s4.5 2 4.5 5M10.5 17c0-2.6 1.7-4.4 3.8-4.4S18 14.4 18 17" stroke-linecap="round"/></svg>
+        Famílias
+      </a>
+
+      <div class="sidebar__section-label">Administração</div>
+      <a href="usuarios.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="6.5" r="2.8"/><path d="M2.5 17c0-3.3 2.5-5.5 5.5-5.5" stroke-linecap="round"/><path d="M13 9l1.4 1.4L17 7.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Usuários do sistema
+      </a>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__user" id="sidebarUser">
+        <div class="sidebar__avatar" id="userAvatar">US</div>
+        <div class="sidebar__user-info">
+          <strong id="userName">Usuário</strong>
+          <span id="userRole">Assistente Social</span>
+        </div>
+        <button id="btnLogout" style="background: none; border: none; cursor: pointer; color: var(--c-rust-500, #BC5B3B); padding: 4px; margin-left: auto;" title="Sair do sistema">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M13 3h3a2 2 0 012 2v10a2 2 0 01-2 2h-3M9 14l4-4-4-4M13 10H3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ Coluna principal ============ -->
+  <div class="main-col">
+
+    <header class="topbar">
+      <div class="topbar__title">
+        <h1 id="pageTitle">Cadastrar Beneficiário</h1>
+        <p id="pageSubtitle">Preencha os dados pessoais, vincule a uma família e faça o upload da foto de perfil.</p>
+      </div>
+      <div class="topbar__actions">
+        <a href="beneficiarios.html" class="btn-secondary" style="display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none; padding:0.6rem 1rem; border-radius:8px; border:1px solid #ccc; font-weight:600;">
+          ← Voltar para listagem
+        </a>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <form id="beneficiarioForm" class="panel" style="padding: 1.75rem;">
+
+        <!-- Seção de Foto de Perfil integrada ao /upload -->
+        <div class="form-group full-width" style="margin-bottom: 1.25rem;">
+          <label style="font-size: 0.95rem; color: var(--color-primary-dark);">Foto de Perfil do Beneficiário</label>
+          <div class="photo-upload-box">
+            <div id="photoPreview" class="photo-preview">BN</div>
+            <div>
+              <p style="margin: 0 0 8px; font-size:0.88rem; color: var(--color-ink-soft);">
+                Selecione uma imagem de perfil (JPEG/PNG, máx 5MB).
+              </p>
+              <input type="file" id="fotoInput" accept="image/jpeg,image/png" style="display:none;">
+              <button type="button" id="btnSelectPhoto" class="btn-upload">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M4 16l4.5-4.5 3 3 3.5-3.5 3 3.5"/><rect x="2.5" y="2.5" width="15" height="15" rx="2.5"/><circle cx="6.5" cy="6.5" r="1.5"/></svg>
+                Selecionar e Enviar Foto
+              </button>
+              <span id="uploadStatus" style="font-size:0.82rem; margin-left:8px; color:var(--color-primary);"></span>
+            </div>
+          </div>
+          <input type="hidden" id="fotoUrl" name="fotoUrl">
+        </div>
+
+        <div class="form-grid">
+
+          <div class="form-group full-width">
+            <label for="nome">Nome Completo *</label>
+            <input type="text" id="nome" name="nome" placeholder="Ex: Maria Joana dos Santos" required>
+          </div>
+
+          <div class="form-group">
+            <label for="cpf">CPF (apenas números ou formatado) *</label>
+            <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" maxlength="14" required>
+            <small id="cpfFeedback" style="font-size:0.78rem; color:#BC5B3B; display:none;">CPF em formato ou duplicidade inválida.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="dataNascimento">Data de Nascimento *</label>
+            <input type="date" id="dataNascimento" name="dataNascimento" required>
+          </div>
+
+          <div class="form-group">
+            <label for="telefone">Telefone / WhatsApp</label>
+            <input type="text" id="telefone" name="telefone" placeholder="(83) 99999-9999">
+          </div>
+
+          <div class="form-group">
+            <label for="situacaoSocial">Situação Social / Vulnerabilidade</label>
+            <select id="situacaoSocial" name="situacaoSocial">
+              <option value="Vulnerabilidade Moderada">Vulnerabilidade Moderada</option>
+              <option value="Vulnerabilidade Alta">Vulnerabilidade Alta</option>
+              <option value="Vulnerabilidade Baixa">Vulnerabilidade Baixa</option>
+              <option value="Regular">Regular</option>
+            </select>
+          </div>
+
+          <!-- Vínculo com a Família -->
+          <div class="form-group full-width" style="margin-top: 0.5rem; border-top: 1px solid var(--color-line, #E1D6C4); padding-top: 1.25rem;">
+            <label for="familiaId" style="font-size: 0.95rem; color: var(--color-primary-dark);">Família Vinculada *</label>
+            <p style="font-size: 0.82rem; color: var(--color-ink-soft); margin: 0 0 6px;">
+              Selecione a família cadastrada à qual este beneficiário pertence.
+            </p>
+            <select id="familiaId" name="familiaId" required style="width:100%;">
+              <option value="">Carregando famílias cadastradas...</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--color-line, #E1D6C4); padding-top: 1.25rem;">
+          <a href="beneficiarios.html" style="padding: 0.7rem 1.2rem; border-radius:8px; border: 1px solid #ccc; text-decoration:none; color: var(--color-ink); font-weight:600;">Cancelar</a>
+          <button type="submit" class="btn-accent" style="padding: 0.7rem 1.6rem;">Salvar Beneficiário</button>
+        </div>
+      </form>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const API_URL = window.location.origin.includes(':3333') ? '' : 'http://localhost:3333';
+    const token = localStorage.getItem('geopb_token');
+    const userRaw = localStorage.getItem('geopb_user');
+
+    if (!token) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    if (userRaw) {
+      try {
+        const user = JSON.parse(userRaw);
+        const nameEl = document.getElementById('userName');
+        const roleEl = document.getElementById('userRole');
+        const avatarEl = document.getElementById('userAvatar');
+        if (nameEl) nameEl.textContent = user.nome || 'Usuário';
+        if (roleEl) roleEl.textContent = user.tipo === 'administrador' ? 'Administrador' : 'Assistente Social';
+        if (avatarEl && user.nome) {
+          avatarEl.textContent = user.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const beneficiarioId = urlParams.get('id');
+
+    if (beneficiarioId) {
+      document.getElementById('pageTitle').textContent = 'Editar Beneficiário';
+      document.getElementById('pageSubtitle').textContent = 'Atualize as informações cadastrais e vínculo do beneficiário.';
+    }
+
+    // Carregar Famílias no Select
+    async function loadFamiliasSelect(selectedFamiliaId = null) {
+      const select = document.getElementById('familiaId');
+      try {
+        const res = await fetch(`${API_URL}/familias`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Erro ao carregar famílias.');
+
+        const familias = await res.json();
+        if (familias.length === 0) {
+          select.innerHTML = '<option value="">Nenhuma família encontrada. Cadastre uma família primeiro.</option>';
+          return;
+        }
+
+        select.innerHTML = '<option value="">Selecione uma família...</option>' +
+          familias.map(f => `
+            <option value="${f.id}" ${selectedFamiliaId == f.id ? 'selected' : ''}>
+              ${f.nomeResponsavel} — ${f.endereco} (${f.qtdMembros} membros)
+            </option>
+          `).join('');
+      } catch (err) {
+        select.innerHTML = `<option value="">Erro ao carregar famílias (${err.message})</option>`;
+      }
+    }
+
+    // Upload de Foto Integrado
+    const fotoInput = document.getElementById('fotoInput');
+    const btnSelectPhoto = document.getElementById('btnSelectPhoto');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const photoPreview = document.getElementById('photoPreview');
+    const fotoUrlInput = document.getElementById('fotoUrl');
+
+    btnSelectPhoto.addEventListener('click', () => {
+      fotoInput.click();
+    });
+
+    fotoInput.addEventListener('change', async function() {
+      if (!this.files || this.files.length === 0) return;
+
+      const file = this.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+
+      uploadStatus.textContent = 'Enviando...';
+      uploadStatus.style.color = 'var(--color-primary)';
+
+      try {
+        const res = await fetch(`${API_URL}/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Erro no envio do arquivo.');
+        }
+
+        fotoUrlInput.value = data.url;
+        uploadStatus.textContent = '✓ Foto enviada!';
+        uploadStatus.style.color = 'var(--color-success)';
+
+        const fullUrl = data.url.startsWith('http') || data.url.startsWith('/') ? data.url : API_URL + '/' + data.url;
+        photoPreview.innerHTML = `<img src="${fullUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+      } catch (err) {
+        uploadStatus.textContent = '✕ ' + err.message;
+        uploadStatus.style.color = '#BC5B3B';
+      }
+    });
+
+    // Formatação visual de CPF
+    document.getElementById('cpf').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value.length > 11) value = value.substring(0, 11);
+
+      if (value.length > 9) {
+        value = `${value.substring(0,3)}.${value.substring(3,6)}.${value.substring(6,9)}-${value.substring(9,11)}`;
+      } else if (value.length > 6) {
+        value = `${value.substring(0,3)}.${value.substring(3,6)}.${value.substring(6)}`;
+      } else if (value.length > 3) {
+        value = `${value.substring(0,3)}.${value.substring(3)}`;
+      }
+      e.target.value = value;
+    });
+
+    // Carregar dados de edição se houver ID
+    async function loadBeneficiarioData() {
+      if (!beneficiarioId) {
+        await loadFamiliasSelect();
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/beneficiarios/${beneficiarioId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Erro ao carregar dados do beneficiário.');
+
+        const data = await res.json();
+        document.getElementById('nome').value = data.nome || '';
+        document.getElementById('cpf').value = data.cpf || '';
+        document.getElementById('dataNascimento').value = data.dataNascimento ? data.dataNascimento.split('T')[0] : '';
+        document.getElementById('telefone').value = data.telefone || '';
+        document.getElementById('situacaoSocial').value = data.situacaoSocial || 'Vulnerabilidade Moderada';
+        document.getElementById('fotoUrl').value = data.fotoUrl || '';
+
+        if (data.fotoUrl) {
+          const fullUrl = data.fotoUrl.startsWith('http') || data.fotoUrl.startsWith('/') ? data.fotoUrl : API_URL + '/' + data.fotoUrl;
+          photoPreview.innerHTML = `<img src="${fullUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+        }
+
+        await loadFamiliasSelect(data.familiaId);
+      } catch (err) {
+        alert(err.message);
+        await loadFamiliasSelect();
+      }
+    }
+
+    // Submit do Formulário com validações
+    document.getElementById('beneficiarioForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const nome = document.getElementById('nome').value.trim();
+      const cpf = document.getElementById('cpf').value.trim();
+      const dataNascimento = document.getElementById('dataNascimento').value;
+      const telefone = document.getElementById('telefone').value.trim();
+      const situacaoSocial = document.getElementById('situacaoSocial').value;
+      const familiaId = document.getElementById('familiaId').value;
+      const fotoUrl = document.getElementById('fotoUrl').value;
+
+      if (!nome || !cpf || !dataNascimento || !familiaId) {
+        alert('Por favor, preencha todos os campos obrigatórios (*).');
+        return;
+      }
+
+      const payload = {
+        nome,
+        cpf,
+        dataNascimento,
+        telefone: telefone || null,
+        situacaoSocial: situacaoSocial || null,
+        familiaId: Number(familiaId),
+        fotoUrl: fotoUrl || null
+      };
+
+      try {
+        const url = beneficiarioId ? `${API_URL}/beneficiarios/${beneficiarioId}` : `${API_URL}/beneficiarios`;
+        const method = beneficiarioId ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Erro ao salvar beneficiário.');
+        }
+
+        alert(beneficiarioId ? 'Beneficiário atualizado com sucesso!' : 'Beneficiário cadastrado com sucesso!');
+        window.location.href = 'beneficiarios.html';
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    loadBeneficiarioData();
+  })();
+</script>
+</body>
+</html>
