@@ -21,14 +21,16 @@ export class BeneficiarioRepository {
     if (filters?.search && filters.search.trim() !== "") {
       const q = filters.search.trim();
       const cleaned = cleanCPF(q);
+      const isPostgres = process.env.DATABASE_URL && process.env.DATABASE_URL.includes("postgres");
+      const likeOp = isPostgres ? Op.iLike : Op.like;
 
       const searchConditions: any[] = [
-        { nome: { [Op.iLike]: `%${q}%` } },
-        { cpf: { [Op.iLike]: `%${q}%` } },
+        { nome: { [likeOp]: `%${q}%` } },
+        { cpf: { [likeOp]: `%${q}%` } },
       ];
 
       if (cleaned.length > 0) {
-        searchConditions.push({ cpf: { [Op.iLike]: `%${cleaned}%` } });
+        searchConditions.push({ cpf: { [likeOp]: `%${cleaned}%` } });
       }
 
       where[Op.or] = searchConditions;

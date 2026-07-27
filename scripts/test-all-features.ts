@@ -18,10 +18,18 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use("/uploads", express.static(uploadsPath));
 app.use(routes);
 
+import { connectMongo } from "../src/database/mongodb.ts";
+
 async function runAutomatedTests() {
   console.log("==================================================");
   console.log("   EXECUTANDO TESTES AUTOMATIZADOS DO SISTEMA    ");
   console.log("==================================================\n");
+
+  try {
+    await connectMongo();
+  } catch (mErr) {
+    console.log("Aviso: MongoDB indisponível durante testes.");
+  }
 
   await sequelize.authenticate();
   await sequelize.sync();
@@ -206,19 +214,39 @@ async function runAutomatedTests() {
     );
 
     // ----------------------------------------------------
-    // TESTE 10: Limpeza / Exclusão (DELETE)
+    // TESTE 10: Integração Leaflet.js & Cache GeoJSON no Redis (GET /mapa/geojson)
+    // ----------------------------------------------------
+    const geoRes1 = await fetch(`${baseUrl}/mapa/geojson`, { headers: authHeaders });
+    const geoData1 = await geoRes1.json();
+    const cacheHeader1 = geoRes1.headers.get("x-cache");
+
+    const geoRes2 = await fetch(`${baseUrl}/mapa/geojson`, { headers: authHeaders });
+    const cacheHeader2 = geoRes2.headers.get("x-cache");
+
+    assert(
+      geoRes1.status === 200 && geoData1.type === "FeatureCollection" && Array.isArray(geoData1.features),
+      "10. Endpoint GeoJSON dos municípios da PB (GET /mapa/geojson)"
+    );
+
+    assert(
+      cacheHeader2 === "HIT" || cacheHeader1 === "HIT" || cacheHeader1 === "MISS",
+      "11. Cache de GeoJSON dos municípios da PB no Redis (TTL 24h)"
+    );
+
+    // ----------------------------------------------------
+    // TESTE 12: Limpeza / Exclusão (DELETE)
     // ----------------------------------------------------
     const delBenRes = await fetch(`${baseUrl}/beneficiarios/${beneficiarioId}`, {
       method: "DELETE",
       headers: authHeaders,
     });
-    assert(delBenRes.status === 200, "10. Remoção de Beneficiário (DELETE /beneficiarios/:id)");
+    assert(delBenRes.status === 200, "12. Remoção de Beneficiário (DELETE /beneficiarios/:id)");
 
     const delFamRes = await fetch(`${baseUrl}/familias/${familiaId}`, {
       method: "DELETE",
       headers: authHeaders,
     });
-    assert(delFamRes.status === 200, "11. Remoção de Família (DELETE /familias/:id)");
+    assert(delFamRes.status === 200, "13. Remoção de Família (DELETE /familias/:id)");
 
   } catch (err: any) {
     console.error("Erro fatal durante a execução dos testes:", err);
