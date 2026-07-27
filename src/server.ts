@@ -17,7 +17,11 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Servir uploads e arquivos estáticos do frontend
 app.use("/uploads", express.static(uploadsPath));
-app.use(express.static("frontend"));
+app.use(express.static(path.resolve("frontend")));
+
+app.get("/", (req, res) => {
+  res.redirect("/login.html");
+});
 
 app.use(routes);
 

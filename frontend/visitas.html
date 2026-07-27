@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visitas Domiciliares · GeoPB Comunidades</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  .map-box {
+    width: 100%;
+    height: 340px;
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--color-line, #E1D6C4);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    z-index: 1;
+  }
+  .map-container {
+    background: #fff;
+    padding: 1.25rem;
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--color-line, #E1D6C4);
+    margin-bottom: 1.5rem;
+  }
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 1rem;
+  }
+  .modal-overlay.is-visible {
+    display: flex;
+  }
+  .modal-card {
+    background: #fff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 640px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-line, #E1D6C4);
+  }
+  .modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .form-grid.full {
+    grid-template-columns: 1fr;
+  }
+  .geo-status-badge {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    transition: all 0.2s ease;
+  }
+  .geo-status-badge.loading {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+  }
+  .geo-status-badge.success {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+  .geo-status-badge.warning {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fef3c7;
+  }
+  .geo-picker-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.75rem;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .geo-picker-btn:hover {
+    background: #f1f5f9;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ Sidebar ============ -->
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <span class="brand__mark" aria-hidden="true"></span>
+      GeoPB Comunidades
+    </div>
+
+    <nav aria-label="Navegação principal">
+      <a href="dashboard.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1"/><rect x="11" y="2.5" width="6.5" height="6.5" rx="1"/><rect x="2.5" y="11" width="6.5" height="6.5" rx="1"/><rect x="11" y="11" width="6.5" height="6.5" rx="1"/></svg>
+        Dashboard
+      </a>
+
+      <div class="sidebar__section-label">Beneficiários & Visitas</div>
+      <a href="beneficiarios.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="6.5" r="3"/><path d="M3.5 17c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" stroke-linecap="round"/></svg>
+        Beneficiários
+      </a>
+      <a href="familias.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="6" r="2.4"/><circle cx="14" cy="6" r="2.4"/><path d="M2.5 17c0-3 2-5 4.5-5s4.5 2 4.5 5M10.5 17c0-2.6 1.7-4.4 3.8-4.4S18 14.4 18 17" stroke-linecap="round"/></svg>
+        Famílias
+      </a>
+      <a href="visitas.html" class="sidebar__link is-active">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 2a6 6 0 00-6 6c0 4.5 6 10 6 10s6-5.5 6-10a6 6 0 00-6-6z"/><circle cx="10" cy="8" r="2"/></svg>
+        Visitas Domiciliares
+      </a>
+
+      <div class="sidebar__section-label">Administração</div>
+      <a href="usuarios.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="6.5" r="2.8"/><path d="M2.5 17c0-3.3 2.5-5.5 5.5-5.5" stroke-linecap="round"/><path d="M13 9l1.4 1.4L17 7.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Usuários do sistema
+      </a>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="user-chip">
+        <div class="user-chip__avatar" id="sidebarAvatar">A</div>
+        <div class="user-chip__info">
+          <div class="user-chip__name" id="sidebarUserName">Carregando...</div>
+          <div class="user-chip__role" id="sidebarUserRole">Assistente Social</div>
+        </div>
+        <button id="logoutBtn" style="background:none; border:none; cursor:pointer; color:#888; margin-left:auto;" title="Sair">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 15l5-5-5-5M18 10H7M9 3H5a2 2 0 00-2 2v10a2 2 0 002 2h4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ Área Principal ============ -->
+  <main class="main-content">
+    <header class="topbar">
+      <div>
+        <h1 class="topbar__title">Visitas Domiciliares</h1>
+        <p class="topbar__subtitle">Registro e geolocalização de acompanhamentos sociais em campo</p>
+      </div>
+      <button class="btn-primary" id="btnNovaVisita">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 4v12M4 10h12" stroke-linecap="round"/></svg>
+        Nova Visita
+      </button>
+    </header>
+
+    <!-- Mapa de Visitas -->
+    <div class="map-container">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+        <h3 style="margin:0; font-size:1rem; font-weight:600;">📍 Geolocalização das Visitas em Campo</h3>
+        <span style="font-size:0.85rem; color:#666;" id="visitCountLabel">0 visitas registradas</span>
+      </div>
+      <div id="visitasMap" class="map-box"></div>
+    </div>
+
+    <!-- Tabela de Visitas -->
+    <section class="card">
+      <div class="card__header" style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+        <h2>Histórico de Visitas Registradas</h2>
+        <div style="display:flex; gap:0.5rem;">
+          <input type="text" id="searchInput" placeholder="Buscar por observações ou ações..." style="padding:0.4rem 0.75rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.9rem; width:260px;">
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table" id="visitasTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Data</th>
+              <th>Beneficiário</th>
+              <th>Técnico Responsável</th>
+              <th>Ações Realizadas</th>
+              <th>Observações</th>
+              <th>Coordenadas</th>
+              <th style="text-align:right;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="visitasTbody">
+            <tr>
+              <td colspan="8" style="text-align:center; padding:2rem; color:#888;">Carregando visitas...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ Modal de Cadastro / Edição ============ -->
+<div class="modal-overlay" id="visitaModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="modalTitle">Cadastrar Nova Visita</h3>
+      <button class="btn-close" id="btnCloseModal">&times;</button>
+    </div>
+
+    <div class="form-error" id="modalError" style="display:none; margin-bottom:1rem; padding:0.75rem; background:#fee2e2; color:#991b1b; border-radius:6px; font-size:0.9rem;"></div>
+
+    <form id="visitaForm">
+      <input type="hidden" id="visitaId">
+
+      <div class="form-grid full" style="margin-bottom:1rem;">
+        <label for="beneficiarioId" style="font-weight:600; font-size:0.9rem;">Beneficiário *</label>
+        <select id="beneficiarioId" required style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.95rem;">
+          <option value="">Selecione o beneficiário...</option>
+        </select>
+      </div>
+
+      <div class="form-grid full" style="margin-bottom:1rem;">
+        <label for="dataVisita" style="font-weight:600; font-size:0.9rem;">Data e Hora da Visita *</label>
+        <input type="datetime-local" id="dataVisita" required style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.95rem;">
+      </div>
+
+      <!-- Área de Geolocalização -->
+      <div style="background:#f8fafc; padding:1rem; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+          <label style="font-weight:600; font-size:0.9rem; margin:0;">📍 Geolocalização da Visita *</label>
+          <button type="button" class="geo-picker-btn" id="btnGeolocalizacao" title="Capturar novamente via GPS">
+            🎯 Recapturar GPS
+          </button>
+        </div>
+
+        <div class="form-grid" style="margin-bottom:0.5rem;">
+          <div>
+            <label for="latitude" style="font-size:0.8rem; color:#475569;">Latitude</label>
+            <input type="number" step="any" id="latitude" placeholder="-6.888000" required style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.9rem;">
+          </div>
+          <div>
+            <label for="longitude" style="font-size:0.8rem; color:#475569;">Longitude</label>
+            <input type="number" step="any" id="longitude" placeholder="-38.558000" required style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.9rem;">
+          </div>
+        </div>
+
+        <!-- Status da captura de GPS / Fallback Manual -->
+        <div id="geoStatusBadge" class="geo-status-badge loading">
+          <span>📡 Obtendo localização GPS automática...</span>
+        </div>
+      </div>
+
+      <div class="form-grid full" style="margin-bottom:1rem;">
+        <label for="acoesRealizadas" style="font-weight:600; font-size:0.9rem;">Ações Realizadas</label>
+        <textarea id="acoesRealizadas" rows="3" placeholder="Ex: Entrega de cesta básica, orientação para emissão de documentos..." style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.95rem;"></textarea>
+      </div>
+
+      <div class="form-grid full" style="margin-bottom:1.5rem;">
+        <label for="observacoes" style="font-weight:600; font-size:0.9rem;">Observações / Anotações do Campo</label>
+        <textarea id="observacoes" rows="3" placeholder="Insira detalhes sobre a situação da família ou moradia..." style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.95rem;"></textarea>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
+        <button type="button" class="btn-quiet" id="btnCancelModal" style="padding:0.6rem 1.2rem; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;">Cancelar</button>
+        <button type="submit" class="btn-primary" id="btnSaveVisita">Salvar Visita</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  const API_URL = window.location.origin.includes(':3333') ? '' : 'http://localhost:3333';
+  const token = localStorage.getItem('geopb_token');
+  const user = JSON.parse(localStorage.getItem('geopb_user') || '{}');
+
+  if (!token) {
+    window.location.href = 'login.html';
+  }
+
+  // Preenche dados do usuário na sidebar
+  if (user.nome) {
+    document.getElementById('sidebarUserName').textContent = user.nome;
+    document.getElementById('sidebarUserRole').textContent = user.tipo === 'administrador' ? 'Administrador' : 'Assistente Social';
+    document.getElementById('sidebarAvatar').textContent = user.nome.charAt(0).toUpperCase();
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('geopb_token');
+    localStorage.removeItem('geopb_user');
+    window.location.href = 'login.html';
+  });
+
+  // Inicializa Mapa Leaflet (Centralizado em Cajazeiras/PB por padrão)
+  const map = L.map('visitasMap').setView([-6.888, -38.558], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  let markersGroup = L.layerGroup().addTo(map);
+
+  let listVisitas = [];
+  let listBeneficiarios = [];
+
+  // Elementos da UI
+  const visitasTbody = document.getElementById('visitasTbody');
+  const visitaModal = document.getElementById('visitaModal');
+  const visitaForm = document.getElementById('visitaForm');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalError = document.getElementById('modalError');
+  const searchInput = document.getElementById('searchInput');
+  const geoStatusBadge = document.getElementById('geoStatusBadge');
+
+  // Carrega Beneficiários para o formulário
+  async function loadBeneficiarios() {
+    try {
+      const res = await fetch(`${API_URL}/beneficiarios`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        listBeneficiarios = await res.json();
+        const select = document.getElementById('beneficiarioId');
+        select.innerHTML = '<option value="">Selecione o beneficiário...</option>';
+        listBeneficiarios.forEach(b => {
+          const opt = document.createElement('option');
+          opt.value = b.id;
+          opt.textContent = `${b.nome} ${b.cpf ? '(CPF: ' + b.cpf + ')' : ''}`;
+          select.appendChild(opt);
+        });
+      }
+    } catch (err) {
+      console.error('Erro ao carregar beneficiários:', err);
+    }
+  }
+
+  // Carrega Visitas da API
+  async function loadVisitas() {
+    try {
+      const search = searchInput.value;
+      const url = search ? `${API_URL}/visitas?search=${encodeURIComponent(search)}` : `${API_URL}/visitas`;
+      const res = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!res.ok) throw new Error('Falha ao carregar visitas.');
+      listVisitas = await res.json();
+
+      renderVisitas();
+      renderMap();
+    } catch (err) {
+      console.error(err);
+      visitasTbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#dc2626;">Erro ao carregar lista de visitas.</td></tr>`;
+    }
+  }
+
+  function renderVisitas() {
+    document.getElementById('visitCountLabel').textContent = `${listVisitas.length} visita(s) encontrada(s)`;
+
+    if (listVisitas.length === 0) {
+      visitasTbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2rem; color:#666;">Nenhuma visita cadastrada até o momento.</td></tr>`;
+      return;
+    }
+
+    visitasTbody.innerHTML = listVisitas.map(v => {
+      const dataFmt = v.dataVisita ? new Date(v.dataVisita).toLocaleString('pt-BR') : '-';
+      const beneficiarioNome = v.beneficiario ? v.beneficiario.nome : `ID #${v.beneficiarioId}`;
+      const usuarioNome = v.usuario ? v.usuario.nome : `Técnico #${v.usuarioId}`;
+
+      return `
+        <tr>
+          <td><strong>#${v.id}</strong></td>
+          <td>${dataFmt}</td>
+          <td><strong>${escapeHtml(beneficiarioNome)}</strong></td>
+          <td>${escapeHtml(usuarioNome)}</td>
+          <td>${escapeHtml(v.acoesRealizadas || '-')}</td>
+          <td>${escapeHtml(v.observacoes || '-')}</td>
+          <td><small style="font-family:monospace;">${Number(v.latitude).toFixed(5)}, ${Number(v.longitude).toFixed(5)}</small></td>
+          <td style="text-align:right; white-space:nowrap;">
+            <button onclick="openEditModal(${v.id})" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:0.3rem 0.6rem; border-radius:4px; cursor:pointer; margin-right:0.3rem;" title="Editar">✏️ Editar</button>
+            <button onclick="deleteVisita(${v.id})" style="background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; padding:0.3rem 0.6rem; border-radius:4px; cursor:pointer;" title="Excluir">🗑️ Excluir</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function renderMap() {
+    markersGroup.clearLayers();
+    const bounds = [];
+
+    listVisitas.forEach(v => {
+      const lat = Number(v.latitude);
+      const lng = Number(v.longitude);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        bounds.push([lat, lng]);
+        const dataFmt = v.dataVisita ? new Date(v.dataVisita).toLocaleDateString('pt-BR') : '';
+        const beneficiarioNome = v.beneficiario ? v.beneficiario.nome : `ID #${v.beneficiarioId}`;
+        const usuarioNome = v.usuario ? v.usuario.nome : 'Técnico';
+
+        const popupContent = `
+          <div style="font-family:sans-serif; font-size:0.9rem;">
+            <h4 style="margin:0 0 0.3rem 0; color:#1e293b;">📍 Visita #${v.id}</h4>
+            <p style="margin:0 0 0.3rem 0;"><strong>Beneficiário:</strong> ${escapeHtml(beneficiarioNome)}</p>
+            <p style="margin:0 0 0.3rem 0;"><strong>Data:</strong> ${dataFmt}</p>
+            <p style="margin:0 0 0.3rem 0;"><strong>Técnico:</strong> ${escapeHtml(usuarioNome)}</p>
+            ${v.acoesRealizadas ? `<p style="margin:0 0 0.3rem 0; color:#0369a1;"><strong>Ações:</strong> ${escapeHtml(v.acoesRealizadas)}</p>` : ''}
+            ${v.observacoes ? `<p style="margin:0; font-style:italic; color:#475569;">"${escapeHtml(v.observacoes)}"</p>` : ''}
+          </div>
+        `;
+
+        L.marker([lat, lng]).addTo(markersGroup).bindPopup(popupContent);
+      }
+    });
+
+    if (bounds.length > 0) {
+      map.fitBounds(bounds, { padding: [30, 30] });
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, function(m) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+    });
+  }
+
+  // Função para Captura Automática de Geolocalização com Fallback
+  function captureGeolocationAutomatically(forceRecapture = false) {
+    const latInput = document.getElementById('latitude');
+    const lngInput = document.getElementById('longitude');
+
+    geoStatusBadge.className = 'geo-status-badge loading';
+    geoStatusBadge.innerHTML = '<span>📡 Obtendo localização GPS via navegador...</span>';
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude.toFixed(6);
+          const lng = pos.coords.longitude.toFixed(6);
+          latInput.value = lat;
+          lngInput.value = lng;
+
+          geoStatusBadge.className = 'geo-status-badge success';
+          geoStatusBadge.innerHTML = `<span>✅ Localização capturada automaticamente (${lat}, ${lng})</span>`;
+        },
+        (err) => {
+          console.warn('Erro ao obter geolocalização:', err.message);
+          
+          // Se falhar ou permissão negada, fornece fallback com coordenadas padrão ou edição manual
+          if (!latInput.value || !lngInput.value) {
+            latInput.value = '-6.888000';
+            lngInput.value = '-38.558000';
+          }
+
+          geoStatusBadge.className = 'geo-status-badge warning';
+          geoStatusBadge.innerHTML = '<span>⚠️ GPS indisponível no navegador. Digite as coordenadas manualmente ou ajuste nos campos abaixo.</span>';
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      );
+    } else {
+      if (!latInput.value || !lngInput.value) {
+        latInput.value = '-6.888000';
+        lngInput.value = '-38.558000';
+      }
+      geoStatusBadge.className = 'geo-status-badge warning';
+      geoStatusBadge.innerHTML = '<span>⚠️ Geolocalização não suportada. Preencha a latitude/longitude manualmente.</span>';
+    }
+  }
+
+  // Modal Controls
+  document.getElementById('btnNovaVisita').addEventListener('click', () => {
+    modalTitle.textContent = 'Cadastrar Nova Visita';
+    visitaForm.reset();
+    document.getElementById('visitaId').value = '';
+    
+    // Set default datetime to now
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('dataVisita').value = now.toISOString().slice(0, 16);
+
+    modalError.style.display = 'none';
+    visitaModal.classList.add('is-visible');
+
+    // DISPARO AUTOMÁTICO DE GEOLOCALIZAÇÃO AO ABRIR O FORMULÁRIO
+    captureGeolocationAutomatically();
+  });
+
+  function closeModal() {
+    visitaModal.classList.remove('is-visible');
+  }
+
+  document.getElementById('btnCloseModal').addEventListener('click', closeModal);
+  document.getElementById('btnCancelModal').addEventListener('click', closeModal);
+
+  window.openEditModal = function(id) {
+    const v = listVisitas.find(item => item.id === id);
+    if (!v) return;
+
+    modalTitle.textContent = `Editar Visita #${v.id}`;
+    document.getElementById('visitaId').value = v.id;
+    document.getElementById('beneficiarioId').value = v.beneficiarioId;
+
+    if (v.dataVisita) {
+      const d = new Date(v.dataVisita);
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      document.getElementById('dataVisita').value = d.toISOString().slice(0, 16);
+    }
+
+    document.getElementById('latitude').value = v.latitude;
+    document.getElementById('longitude').value = v.longitude;
+    document.getElementById('acoesRealizadas').value = v.acoesRealizadas || '';
+    document.getElementById('observacoes').value = v.observacoes || '';
+
+    geoStatusBadge.className = 'geo-status-badge success';
+    geoStatusBadge.innerHTML = `<span>📍 Coordenadas carregadas (${v.latitude}, ${v.longitude})</span>`;
+
+    modalError.style.display = 'none';
+    visitaModal.classList.add('is-visible');
+  };
+
+  // Botão de Recaptura Manual de Geolocalização
+  document.getElementById('btnGeolocalizacao').addEventListener('click', () => {
+    captureGeolocationAutomatically(true);
+  });
+
+  // Submit Form (Create or Update)
+  visitaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    modalError.style.display = 'none';
+
+    const id = document.getElementById('visitaId').value;
+    const beneficiarioId = document.getElementById('beneficiarioId').value;
+    const dataVisita = document.getElementById('dataVisita').value;
+    const latitude = document.getElementById('latitude').value;
+    const longitude = document.getElementById('longitude').value;
+    const acoesRealizadas = document.getElementById('acoesRealizadas').value;
+    const observacoes = document.getElementById('observacoes').value;
+
+    const payload = {
+      beneficiarioId: Number(beneficiarioId),
+      dataVisita,
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      acoesRealizadas,
+      observacoes
+    };
+
+    try {
+      const url = id ? `${API_URL}/visitas/${id}` : `${API_URL}/visitas`;
+      const method = id ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Erro ao salvar a visita.');
+      }
+
+      closeModal();
+      loadVisitas();
+    } catch (err) {
+      modalError.textContent = err.message;
+      modalError.style.display = 'block';
+    }
+  });
+
+  // Delete Visita
+  window.deleteVisita = async function(id) {
+    if (!confirm(`Deseja realmente excluir a visita #${id}?`)) return;
+
+    try {
+      const res = await fetch(`${API_URL}/visitas/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Erro ao excluir visita.');
+      }
+
+      loadVisitas();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  searchInput.addEventListener('input', () => {
+    loadVisitas();
+  });
+
+  // Inicialização
+  loadBeneficiarios();
+  loadVisitas();
+</script>
+</body>
+</html>

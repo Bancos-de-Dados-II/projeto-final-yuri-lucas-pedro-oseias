@@ -1,4 +1,5 @@
 import { Familia, FamiliaCreationAttributes, FamiliaAttributes, Beneficiario } from "../models/index.ts";
+import { sequelize } from "../database/sequelize.ts";
 import { Op } from "sequelize";
 
 export class FamiliaRepository {
@@ -45,7 +46,7 @@ export class FamiliaRepository {
       longitude: lng,
     };
 
-    if (!isNaN(lat) && !isNaN(lng)) {
+    if (sequelize.getDialect() === "postgres" && !isNaN(lat) && !isNaN(lng)) {
       familiaData.localizacao = {
         type: "Point",
         coordinates: [lng, lat],
@@ -66,10 +67,12 @@ export class FamiliaRepository {
       if (!isNaN(lat) && !isNaN(lng)) {
         updateData.latitude = lat;
         updateData.longitude = lng;
-        updateData.localizacao = {
-          type: "Point",
-          coordinates: [lng, lat],
-        };
+        if (sequelize.getDialect() === "postgres") {
+          updateData.localizacao = {
+            type: "Point",
+            coordinates: [lng, lat],
+          };
+        }
       }
     }
 
