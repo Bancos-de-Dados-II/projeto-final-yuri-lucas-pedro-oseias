@@ -309,6 +309,103 @@ export class Neo4jSyncService {
       await session.close();
     }
   }
+
+  // CONSULTA 1: Proximidade geográfica de Famílias (aresta PROXIMO_DE)
+  async getProximidadeFamilias(raioMaxKm: number = 10.0) {
+    const session = getNeo4jSession();
+    try {
+      const result = await session.run(
+        `
+        MATCH (f1:Familia)-[r:PROXIMO_DE]->(f2:Familia)
+        WHERE r.distanciaKm <= $raioMaxKm
+        RETURN f1.id AS familia1Id, f1.nomeResponsavel AS familia1Responsavel, f1.endereco AS familia1Endereco,
+               f2.id AS familia2Id, f2.nomeResponsavel AS familia2Responsavel, f2.endereco AS familia2Endereco,
+               r.distanciaKm AS distanciaKm
+        ORDER BY r.distanciaKm ASC
+        LIMIT 100
+        `,
+        { raioMaxKm: Number(raioMaxKm) }
+      );
+
+      return result.records.map(rec => ({
+        familia1: {
+          id: Number(rec.get("familia1Id")),
+          nomeResponsavel: rec.get("familia1Responsavel"),
+          endereco: rec.get("familia1Endereco"),
+        },
+        familia2: {
+          id: Number(rec.get("familia2Id")),
+          nomeResponsavel: rec.get("familia2Responsavel"),
+          endereco: rec.get("familia2Endereco"),
+        },
+        distanciaKm: Number(rec.get("distanciaKm")),
+      }));
+    } catch (error) {
+      console.error("[Neo4j] Erro na consulta de proximidade de famílias:", error);
+      return [];
+    } finally {
+      await session.close();
+    }
+  }
+
+  // CONSULTA 2: Sobreposição de Atendimentos (Beneficiários atendidos por mais de 1 usuário / assistente social)
+  async getSobreposicaoAtendimentos() {
+    const session = getNeo4jSession();
+    try {
+      const result = await session.run(`
+        MATCH (b:Beneficiario)-[:FOI_ATENDIDO_POR]->(u:Usuario)
+        WITH b, count(DISTINCT u) AS totalAtendentes, collect(DISTINCT { id: u.id, nome: u.nome, tipo: u.tipo }) AS atendentes
+        RETURN b.id AS beneficiarioId, b.nome AS beneficiarioNome, b.cpf AS beneficiarioCpf, totalAtendentes, atendentes
+        ORDER BY totalAtendentes DESC
+      `);
+
+      return result.records.map(rec => ({
+        beneficiario: {
+          id: Number(rec.get("beneficiarioId")),
+          nome: rec.get("beneficiarioNome"),
+          cpf: rec.get("beneficiarioCpf"),
+        },
+        totalAtendentes: Number(rec.get("totalAtendentes")),
+        atendentes: rec.get("atendentes"),
+      }));
+    } catch (error) {
+      console.error("[Neo4j] Erro na consulta de sobreposição de atendimentos:", error);
+      return [];
+    } finally {
+      await session.close();
+    }
+  }
+
+  // CONSULTA 3: Rede de Relacionamentos do Grafo (Visão integrada de Famílias, Programas e Atendimentos)
+  async getRedeRelacionamentos() {
+    const session = getNeo4jSession();
+    try {
+      const result = await session.run(`
+        MATCH (b:Beneficiario)-[:PERTENCE_A]->(f:Familia)
+        OPTIONAL MATCH (b)-[:PARTICIPA_DE]->(p:ProgramaSocial)
+        OPTIONAL MATCH (b)-[:FOI_ATENDIDO_POR]->(u:Usuario)
+        RETURN b.id AS beneficiarioId, b.nome AS beneficiarioNome,
+               f.id AS familiaId, f.nomeResponsavel AS familiaResponsavel,
+               collect(DISTINCT p.nome) AS programas,
+               collect(DISTINCT u.nome) AS assistentesAtendentes
+        LIMIT 100
+      `);
+
+      return result.records.map(rec => ({
+        beneficiarioId: Number(rec.get("beneficiarioId")),
+        beneficiarioNome: rec.get("beneficiarioNome"),
+        familiaId: Number(rec.get("familiaId")),
+        familiaResponsavel: rec.get("familiaResponsavel"),
+        programas: rec.get("programas").filter(Boolean),
+        assistentesAtendentes: rec.get("assistentesAtendentes").filter(Boolean),
+      }));
+    } catch (error) {
+      console.error("[Neo4j] Erro na consulta de rede de relacionamentos:", error);
+      return [];
+    } finally {
+      await session.close();
+    }
+  }
 }
 
 export const neo4jSyncService = new Neo4jSyncService();

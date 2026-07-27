@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { beneficiarioRepository, cleanCPF } from "../repositories/BeneficiarioRepository.ts";
 import { familiaRepository } from "../repositories/FamiliaRepository.ts";
 import { beneficiarioLogRepository } from "../repositories/BeneficiarioLogRepository.ts";
-import { neo4jSyncService } from "../services/neo4jSyncService.ts";
+import { neo4jQueueService } from "../services/neo4jQueue.ts";
 
 export class BeneficiarioController {
   // CREATE - Cadastrar Beneficiário
@@ -45,8 +45,8 @@ export class BeneficiarioController {
         familiaId: numFamiliaId,
       });
 
-      // Sincroniza no Neo4j
-      await neo4jSyncService.syncBeneficiario(novoBeneficiario.toJSON());
+      // Propagação assíncrona pós-escrita para o Neo4j (não-bloqueante)
+      neo4jQueueService.enqueue("SYNC_BENEFICIARIO", novoBeneficiario.toJSON());
 
       // Salva log no MongoDB
       const usuarioId = (req as any).user?.id || req.body.usuarioId || 0;
@@ -193,8 +193,8 @@ export class BeneficiarioController {
         return res.status(404).json({ error: "Beneficiário não encontrado." });
       }
 
-      // Sincroniza exclusão no Neo4j
-      await neo4jSyncService.deleteNode("Beneficiario", id);
+      // Propagação assíncrona da exclusão no Neo4j
+      neo4jQueueService.enqueue("DELETE_NODE", { label: "Beneficiario", id });
 
       // Salva log no MongoDB
       const usuarioId = (req as any).user?.id || req.body.usuarioId || 0;

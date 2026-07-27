@@ -258,7 +258,34 @@ async function runAutomatedTests() {
     );
 
     // ----------------------------------------------------
-    // TESTE 14: Limpeza / Exclusão (DELETE)
+    // TESTE 14: Consultas Cypher no Grafo (Proximidade & Sobreposição de Atendimentos)
+    // ----------------------------------------------------
+    const proxRes = await fetch(`${baseUrl}/neo4j/consultas/proximidade?raio=15`, { headers: authHeaders });
+    const proxData = await proxRes.json();
+
+    const sobrepRes = await fetch(`${baseUrl}/neo4j/consultas/sobreposicao-atendimentos`, { headers: authHeaders });
+    const sobrepData = await sobrepRes.json();
+
+    const redeRes = await fetch(`${baseUrl}/neo4j/consultas/rede-relacionamentos`, { headers: authHeaders });
+    const redeData = await redeRes.json();
+
+    assert(
+      proxRes.status === 200 && Array.isArray(proxData),
+      "14. Consulta Cypher no Grafo - Proximidade Geográfica de Famílias (GET /neo4j/consultas/proximidade)"
+    );
+
+    assert(
+      sobrepRes.status === 200 && Array.isArray(sobrepData),
+      "15. Consulta Cypher no Grafo - Sobreposição de Atendimentos (GET /neo4j/consultas/sobreposicao-atendimentos)"
+    );
+
+    assert(
+      redeRes.status === 200 && Array.isArray(redeData),
+      "16. Consulta Cypher no Grafo - Rede Integrada de Relacionamentos (GET /neo4j/consultas/rede-relacionamentos)"
+    );
+
+    // ----------------------------------------------------
+    // TESTE 17: Limpeza / Exclusão (DELETE)
     // ----------------------------------------------------
     const delBenRes = await fetch(`${baseUrl}/beneficiarios/${beneficiarioId}`, {
       method: "DELETE",

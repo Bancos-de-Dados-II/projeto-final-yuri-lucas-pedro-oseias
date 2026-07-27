@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { programaSocialRepository } from "../repositories/ProgramaSocialRepository.ts";
-import { neo4jSyncService } from "../services/neo4jSyncService.ts";
+import { neo4jQueueService } from "../services/neo4jQueue.ts";
 
 export class ProgramaSocialController {
   // CREATE
@@ -21,8 +21,8 @@ export class ProgramaSocialController {
         ativo: ativo !== undefined ? Boolean(ativo) : true,
       });
 
-      // Sincroniza nó no Neo4j
-      await neo4jSyncService.syncProgramaSocial(novoPrograma.toJSON());
+      // Propagação assíncrona pós-escrita para o Neo4j (não-bloqueante)
+      neo4jQueueService.enqueue("SYNC_PROGRAMA", novoPrograma.toJSON());
 
       return res.status(201).json(novoPrograma);
     } catch (error) {
@@ -149,8 +149,11 @@ export class ProgramaSocialController {
         programaId: Number(programaId),
       });
 
-      // Sincroniza relacionamento (Beneficiario)-[:PARTICIPA_DE]->(ProgramaSocial) no Neo4j
-      await neo4jSyncService.linkBeneficiarioPrograma(Number(beneficiarioId), Number(programaId));
+      // Propagação assíncrona da aresta (Beneficiario)-[:PARTICIPA_DE]->(ProgramaSocial) no Neo4j
+      neo4jQueueService.enqueue("LINK_BENEFICIARIO_PROGRAMA", {
+        beneficiarioId: Number(beneficiarioId),
+        programaId: Number(programaId),
+      });
 
       return res.status(201).json(vinculo);
     } catch (error) {

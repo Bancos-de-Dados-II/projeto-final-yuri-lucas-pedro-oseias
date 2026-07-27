@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { familiaRepository } from "../repositories/FamiliaRepository.ts";
-import { neo4jSyncService } from "../services/neo4jSyncService.ts";
+import { neo4jQueueService } from "../services/neo4jQueue.ts";
 
 export class FamiliaController {
   // CREATE - Cadastrar Família (lat/long obrigatórios)
@@ -52,8 +52,8 @@ export class FamiliaController {
         qtdMembros: Number(qtdMembros),
       });
 
-      // Sincroniza nó no Neo4j
-      await neo4jSyncService.syncFamilia(novaFamilia.toJSON());
+      // Propagação assíncrona pós-escrita para o Neo4j (não-bloqueante)
+      neo4jQueueService.enqueue("SYNC_FAMILIA", novaFamilia.toJSON());
 
       return res.status(201).json(novaFamilia);
     } catch (error) {
@@ -132,7 +132,7 @@ export class FamiliaController {
 
       const familiaAtualizada = await familiaRepository.update(id, updateData);
       if (familiaAtualizada) {
-        await neo4jSyncService.syncFamilia(familiaAtualizada.toJSON());
+        neo4jQueueService.enqueue("SYNC_FAMILIA", familiaAtualizada.toJSON());
       }
       return res.json(familiaAtualizada);
     } catch (error) {
@@ -154,7 +154,7 @@ export class FamiliaController {
         return res.status(404).json({ error: "Família não encontrada." });
       }
 
-      await neo4jSyncService.deleteNode("Familia", id);
+      neo4jQueueService.enqueue("DELETE_NODE", { label: "Familia", id });
 
       return res.json({ message: "Família excluída com sucesso." });
     } catch (error) {

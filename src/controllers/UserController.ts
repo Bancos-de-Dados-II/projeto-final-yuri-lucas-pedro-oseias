@@ -3,7 +3,7 @@ import { userRepository } from "../repositories/UserRepository.ts";
 import { hashPassword } from "../services/security.ts";
 import { TipoUsuario } from "../models/index.ts";
 import { AuthenticatedRequest } from "../middlewares/authMiddleware.ts";
-import { neo4jSyncService } from "../services/neo4jSyncService.ts";
+import { neo4jQueueService } from "../services/neo4jQueue.ts";
 
 export class UserController {
   // CREATE - Cadastrar Usuário
@@ -37,8 +37,8 @@ export class UserController {
         fotoUrl: fotoUrl || null,
       });
 
-      // Sincroniza no Neo4j
-      await neo4jSyncService.syncUsuario(novoUsuario.toJSON());
+      // Propagação assíncrona pós-escrita no Neo4j (não-bloqueante)
+      neo4jQueueService.enqueue("SYNC_USUARIO", novoUsuario.toJSON());
 
       const { senhaHash: _, ...usuarioSemSenha } = novoUsuario.toJSON();
 
@@ -152,7 +152,7 @@ export class UserController {
         return res.status(404).json({ error: "Usuário não encontrado." });
       }
 
-      await neo4jSyncService.deleteNode("Usuario", id);
+      neo4jQueueService.enqueue("DELETE_NODE", { label: "Usuario", id });
 
       return res.json({ message: "Usuário excluído com sucesso." });
     } catch (error) {
