@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { programaSocialRepository } from "../repositories/ProgramaSocialRepository.ts";
+import { neo4jSyncService } from "../services/neo4jSyncService.ts";
 
 export class ProgramaSocialController {
   // CREATE
@@ -19,6 +20,9 @@ export class ProgramaSocialController {
         dataFim: dataFim || null,
         ativo: ativo !== undefined ? Boolean(ativo) : true,
       });
+
+      // Sincroniza nó no Neo4j
+      await neo4jSyncService.syncProgramaSocial(novoPrograma.toJSON());
 
       return res.status(201).json(novoPrograma);
     } catch (error) {
@@ -144,6 +148,9 @@ export class ProgramaSocialController {
         beneficiarioId: Number(beneficiarioId),
         programaId: Number(programaId),
       });
+
+      // Sincroniza relacionamento (Beneficiario)-[:PARTICIPA_DE]->(ProgramaSocial) no Neo4j
+      await neo4jSyncService.linkBeneficiarioPrograma(Number(beneficiarioId), Number(programaId));
 
       return res.status(201).json(vinculo);
     } catch (error) {

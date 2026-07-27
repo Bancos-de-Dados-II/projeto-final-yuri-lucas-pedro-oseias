@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { familiaRepository } from "../repositories/FamiliaRepository.ts";
+import { neo4jSyncService } from "../services/neo4jSyncService.ts";
 
 export class FamiliaController {
   // CREATE - Cadastrar Família (lat/long obrigatórios)
@@ -50,6 +51,9 @@ export class FamiliaController {
         rendaFamiliar: rendaFamiliar ? Number(rendaFamiliar) : null,
         qtdMembros: Number(qtdMembros),
       });
+
+      // Sincroniza nó no Neo4j
+      await neo4jSyncService.syncFamilia(novaFamilia.toJSON());
 
       return res.status(201).json(novaFamilia);
     } catch (error) {
@@ -127,6 +131,9 @@ export class FamiliaController {
       }
 
       const familiaAtualizada = await familiaRepository.update(id, updateData);
+      if (familiaAtualizada) {
+        await neo4jSyncService.syncFamilia(familiaAtualizada.toJSON());
+      }
       return res.json(familiaAtualizada);
     } catch (error) {
       console.error("Erro ao atualizar família:", error);
@@ -146,6 +153,8 @@ export class FamiliaController {
       if (!deletado) {
         return res.status(404).json({ error: "Família não encontrada." });
       }
+
+      await neo4jSyncService.deleteNode("Familia", id);
 
       return res.json({ message: "Família excluída com sucesso." });
     } catch (error) {

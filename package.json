@@ -20,6 +20,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.5.0",
     "multer": "^2.2.0",
+    "neo4j-driver": "^6.2.0",
     "pg": "^8.21.0",
     "pg-hstore": "^2.3.4",
     "prisma": "^6.19.0",

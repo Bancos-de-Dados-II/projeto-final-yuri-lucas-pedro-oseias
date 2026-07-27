@@ -234,7 +234,31 @@ async function runAutomatedTests() {
     );
 
     // ----------------------------------------------------
-    // TESTE 12: Limpeza / Exclusão (DELETE)
+    // TESTE 12: Sincronização de Nós e Grafo no Neo4j (POST /neo4j/sync & GET /neo4j/stats)
+    // ----------------------------------------------------
+    const neo4jSyncRes = await fetch(`${baseUrl}/neo4j/sync`, {
+      method: "POST",
+      headers: authHeaders,
+    });
+    const neo4jSyncData = await neo4jSyncRes.json();
+
+    const neo4jStatsRes = await fetch(`${baseUrl}/neo4j/stats`, {
+      headers: authHeaders,
+    });
+    const neo4jStatsData = await neo4jStatsRes.json();
+
+    assert(
+      neo4jSyncRes.status === 200 && !!neo4jSyncData.stats,
+      "12. Sincronização de nós no Neo4j (POST /neo4j/sync - Beneficiario, Familia, ProgramaSocial, Usuario)"
+    );
+
+    assert(
+      neo4jStatsRes.status === 200 && typeof neo4jStatsData.relationships === "object",
+      "13. Modelagem de arestas no Neo4j (PERTENCE_A, PARTICIPA_DE, FOI_ATENDIDO_POR, PROXIMO_DE)"
+    );
+
+    // ----------------------------------------------------
+    // TESTE 14: Limpeza / Exclusão (DELETE)
     // ----------------------------------------------------
     const delBenRes = await fetch(`${baseUrl}/beneficiarios/${beneficiarioId}`, {
       method: "DELETE",

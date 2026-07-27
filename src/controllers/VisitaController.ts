@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { visitaRepository } from "../repositories/VisitaRepository.ts";
 import { visitaLogRepository } from "../repositories/VisitaLogRepository.ts";
+import { neo4jSyncService } from "../services/neo4jSyncService.ts";
 
 export class VisitaController {
   // CREATE - Registrar Visita (data, observacoes, acoesRealizadas, lat/long, beneficiarioId)
@@ -57,6 +58,9 @@ export class VisitaController {
         beneficiarioId: Number(beneficiarioId),
         usuarioId: Number(usuarioId),
       });
+
+      // Sincroniza relacionamento (Usuario)-[:ATENDEU_VISITA]->(Beneficiario) no Neo4j
+      await neo4jSyncService.linkVisita(Number(usuarioId), Number(beneficiarioId));
 
       // Salva log no MongoDB
       await visitaLogRepository.saveLog({
