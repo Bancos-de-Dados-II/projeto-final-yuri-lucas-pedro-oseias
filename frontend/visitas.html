@@ -195,7 +195,10 @@
     <section class="card">
       <div class="card__header" style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
         <h2>Histórico de Visitas Registradas</h2>
-        <div style="display:flex; gap:0.5rem;">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <select id="filterBeneficiario" style="padding:0.4rem 0.75rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.9rem; width:220px; background-color: #fff;">
+            <option value="">Todos os Beneficiários</option>
+          </select>
           <input type="text" id="searchInput" placeholder="Buscar por observações ou ações..." style="padding:0.4rem 0.75rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.9rem; width:260px;">
         </div>
       </div>
@@ -339,7 +342,7 @@
   const searchInput = document.getElementById('searchInput');
   const geoStatusBadge = document.getElementById('geoStatusBadge');
 
-  // Carrega Beneficiários para o formulário
+  // Carrega Beneficiários para o formulário e filtro
   async function loadBeneficiarios() {
     try {
       const res = await fetch(`${API_URL}/beneficiarios`, {
@@ -347,13 +350,23 @@
       });
       if (res.ok) {
         listBeneficiarios = await res.json();
+        
+        // Populando select do formulário
         const select = document.getElementById('beneficiarioId');
         select.innerHTML = '<option value="">Selecione o beneficiário...</option>';
+        
+        // Populando select do filtro
+        const filterSelect = document.getElementById('filterBeneficiario');
+        filterSelect.innerHTML = '<option value="">Todos os Beneficiários</option>';
+
         listBeneficiarios.forEach(b => {
           const opt = document.createElement('option');
           opt.value = b.id;
           opt.textContent = `${b.nome} ${b.cpf ? '(CPF: ' + b.cpf + ')' : ''}`;
           select.appendChild(opt);
+
+          const filterOpt = opt.cloneNode(true);
+          filterSelect.appendChild(filterOpt);
         });
       }
     } catch (err) {
@@ -361,11 +374,18 @@
     }
   }
 
-  // Carrega Visitas da API
+  // Carrega Visitas da API com filtros
   async function loadVisitas() {
     try {
       const search = searchInput.value;
-      const url = search ? `${API_URL}/visitas?search=${encodeURIComponent(search)}` : `${API_URL}/visitas`;
+      const beneficiarioId = document.getElementById('filterBeneficiario').value;
+      
+      let url = `${API_URL}/visitas?`;
+      const params = [];
+      if (search) params.push(`search=${encodeURIComponent(search)}`);
+      if (beneficiarioId) params.push(`beneficiarioId=${beneficiarioId}`);
+      url += params.join('&');
+
       const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -621,6 +641,10 @@
   };
 
   searchInput.addEventListener('input', () => {
+    loadVisitas();
+  });
+
+  document.getElementById('filterBeneficiario').addEventListener('change', () => {
     loadVisitas();
   });
 

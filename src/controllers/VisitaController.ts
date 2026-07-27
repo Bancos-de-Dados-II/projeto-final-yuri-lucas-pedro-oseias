@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 import { visitaRepository } from "../repositories/VisitaRepository.ts";
+import { visitaLogRepository } from "../repositories/VisitaLogRepository.ts";
 
 export class VisitaController {
   // CREATE - Registrar Visita (data, observacoes, acoesRealizadas, lat/long, beneficiarioId)
   async create(req: Request, res: Response) {
     try {
-      const { dataVisita, observacoes, acoesRealizadas, latitude, longitude, beneficiarioId } = req.body;
+      const { dataVisita, observacoes, acoesRealizadas, latitude, longitude, beneficiarioId, dadosVariaveis, anexos } = req.body;
 
       if (!beneficiarioId) {
         return res.status(400).json({ error: "O campo 'beneficiarioId' é obrigatório." });
@@ -57,7 +58,26 @@ export class VisitaController {
         usuarioId: Number(usuarioId),
       });
 
-      return res.status(201).json(novaVisita);
+      // Salva log no MongoDB
+      await visitaLogRepository.saveLog({
+        visitaId: novaVisita.id,
+        beneficiarioId: novaVisita.beneficiarioId,
+        usuarioId: novaVisita.usuarioId,
+        dataVisita: novaVisita.dataVisita,
+        acoesRealizadas: novaVisita.acoesRealizadas,
+        observacoes: novaVisita.observacoes,
+        latitude: Number(novaVisita.latitude),
+        longitude: Number(novaVisita.longitude),
+        dadosVariaveis: dadosVariaveis || null,
+        anexos: anexos || [],
+        acao: "CREATE",
+      });
+
+      return res.status(201).json({
+        ...novaVisita.toJSON(),
+        dadosVariaveis: dadosVariaveis || null,
+        anexos: anexos || [],
+      });
     } catch (error) {
       console.error("Erro ao registrar visita:", error);
       return res.status(500).json({ error: "Erro interno ao registrar a visita." });
@@ -98,7 +118,14 @@ export class VisitaController {
         return res.status(404).json({ error: "Visita não encontrada." });
       }
 
-      return res.json(visita);
+      // Busca o último log do MongoDB para dados variáveis e anexos
+      const log = await visitaLogRepository.getLatestLogByVisitaId(id);
+
+      return res.json({
+        ...visita.toJSON(),
+        dadosVariaveis: log ? log.dadosVariaveis : null,
+        anexos: log ? log.anexos : [],
+      });
     } catch (error) {
       console.error("Erro ao buscar visita por ID:", error);
       return res.status(500).json({ error: "Erro interno ao buscar a visita." });
@@ -118,7 +145,7 @@ export class VisitaController {
         return res.status(404).json({ error: "Visita não encontrada." });
       }
 
-      const { dataVisita, observacoes, acoesRealizadas, latitude, longitude, beneficiarioId } = req.body;
+      const { dataVisita, observacoes, acoesRealizadas, latitude, longitude, beneficiarioId, dadosVariaveis, anexos } = req.body;
 
       const updateData: any = {};
       if (dataVisita) updateData.dataVisita = new Date(dataVisita);
@@ -142,7 +169,35 @@ export class VisitaController {
       }
 
       const visitaAtualizada = await visitaRepository.update(id, updateData);
-      return res.json(visitaAtualizada);
+      if (!visitaAtualizada) {
+        return res.status(404).json({ error: "Visita não encontrada." });
+      }
+
+      // Recupera log anterior no MongoDB para herdar campos se necessário
+      const anteriorLog = await visitaLogRepository.getLatestLogByVisitaId(id);
+      const logDadosVariaveis = dadosVariaveis !== undefined ? dadosVariaveis : (anteriorLog ? anteriorLog.dadosVariaveis : null);
+      const logAnexos = anexos !== undefined ? anexos : (anteriorLog ? anteriorLog.anexos : []);
+
+      // Salva novo log no MongoDB
+      await visitaLogRepository.saveLog({
+        visitaId: visitaAtualizada.id,
+        beneficiarioId: visitaAtualizada.beneficiarioId,
+        usuarioId: visitaAtualizada.usuarioId,
+        dataVisita: visitaAtualizada.dataVisita,
+        acoesRealizadas: visitaAtualizada.acoesRealizadas,
+        observacoes: visitaAtualizada.observacoes,
+        latitude: Number(visitaAtualizada.latitude),
+        longitude: Number(visitaAtualizada.longitude),
+        dadosVariaveis: logDadosVariaveis,
+        anexos: logAnexos,
+        acao: "UPDATE",
+      });
+
+      return res.json({
+        ...visitaAtualizada.toJSON(),
+        dadosVariaveis: logDadosVariaveis,
+        anexos: logAnexos,
+      });
     } catch (error) {
       console.error("Erro ao atualizar visita:", error);
       return res.status(500).json({ error: "Erro interno ao atualizar a visita." });
@@ -157,10 +212,28 @@ export class VisitaController {
         return res.status(400).json({ error: "ID inválido." });
       }
 
+      const visitaExistente = await visitaRepository.findById(id);
+      if (!visitaExistente) {
+        return res.status(404).json({ error: "Visita não encontrada." });
+      }
+
       const deletado = await visitaRepository.delete(id);
       if (!deletado) {
         return res.status(404).json({ error: "Visita não encontrada." });
       }
+
+      // Salva log de deleção no MongoDB
+      await visitaLogRepository.saveLog({
+        visitaId: visitaExistente.id,
+        beneficiarioId: visitaExistente.beneficiarioId,
+        usuarioId: visitaExistente.usuarioId,
+        dataVisita: visitaExistente.dataVisita,
+        acoesRealizadas: visitaExistente.acoesRealizadas,
+        observacoes: visitaExistente.observacoes,
+        latitude: Number(visitaExistente.latitude),
+        longitude: Number(visitaExistente.longitude),
+        acao: "DELETE",
+      });
 
       return res.json({ message: "Visita excluída com sucesso." });
     } catch (error) {

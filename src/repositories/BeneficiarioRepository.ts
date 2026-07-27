@@ -1,4 +1,4 @@
-import { Beneficiario, BeneficiarioCreationAttributes, BeneficiarioAttributes, Familia } from "../models/index.ts";
+import { Beneficiario, BeneficiarioCreationAttributes, BeneficiarioAttributes, Familia, ProgramaSocial } from "../models/index.ts";
 import { Op } from "sequelize";
 
 export function cleanCPF(cpf: string): string {
@@ -42,6 +42,11 @@ export class BeneficiarioRepository {
           as: "familia",
           attributes: ["id", "nomeResponsavel", "endereco", "latitude", "longitude"],
         },
+        {
+          model: ProgramaSocial,
+          as: "programas",
+          through: { attributes: ["dataInclusao"] },
+        },
       ],
       order: [["id", "DESC"]],
     });
@@ -53,6 +58,11 @@ export class BeneficiarioRepository {
         {
           model: Familia,
           as: "familia",
+        },
+        {
+          model: ProgramaSocial,
+          as: "programas",
+          through: { attributes: ["dataInclusao"] },
         },
       ],
     });

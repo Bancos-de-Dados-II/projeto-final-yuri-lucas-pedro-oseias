@@ -5,6 +5,7 @@ import { familiasRouter } from "./familias.routes.ts";
 import { beneficiariosRouter } from "./beneficiarios.routes.ts";
 import { uploadRouter } from "./upload.routes.ts";
 import { visitasRouter } from "./visitas.routes.ts";
+import { programasRouter } from "./programas.routes.ts";
 
 const routes = Router();
 
@@ -14,5 +15,6 @@ routes.use("/familias", familiasRouter);
 routes.use("/beneficiarios", beneficiariosRouter);
 routes.use("/upload", uploadRouter);
 routes.use("/visitas", visitasRouter);
+routes.use("/programas-sociais", programasRouter);
 
 export { routes };
