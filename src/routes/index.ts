@@ -6,6 +6,7 @@ import { beneficiariosRouter } from "./beneficiarios.routes.ts";
 import { uploadRouter } from "./upload.routes.ts";
 import { visitasRouter } from "./visitas.routes.ts";
 import { programasRouter } from "./programas.routes.ts";
+import { agendamentosRouter } from "./agendamentos.routes.ts";
 
 const routes = Router();
 
@@ -16,5 +17,6 @@ routes.use("/beneficiarios", beneficiariosRouter);
 routes.use("/upload", uploadRouter);
 routes.use("/visitas", visitasRouter);
 routes.use("/programas-sociais", programasRouter);
+routes.use("/agendamentos", agendamentosRouter);
 
 export { routes };
