@@ -289,15 +289,15 @@
 </div>
 
 <script>
-  const API_URL = window.location.origin;
-  const token = localStorage.getItem('token');
-  const userJson = localStorage.getItem('user');
+  const API_URL = window.location.origin.includes(':3333') ? '' : 'http://localhost:3333';
+  const token = localStorage.getItem('geopb_token');
+  const userJson = localStorage.getItem('geopb_user');
 
   if (!token || !userJson) {
     window.location.href = 'login.html';
   }
 
-  const currentUser = JSON.parse(userJson);
+  const currentUser = JSON.parse(userJson || '{}');
 
   // Set Sidebar user info
   document.getElementById('sidebarUserName').textContent = currentUser.nome || 'Usuário';
