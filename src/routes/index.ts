@@ -9,6 +9,7 @@ import { programasRouter } from "./programas.routes.ts";
 import { agendamentosRouter } from "./agendamentos.routes.ts";
 import { mapaRouter } from "./mapa.routes.ts";
 import { neo4jRouter } from "./neo4j.routes.ts";
+import { relatoriosRouter } from "./relatorios.routes.ts";
 
 const routes = Router();
 
@@ -22,5 +23,6 @@ routes.use("/programas-sociais", programasRouter);
 routes.use("/agendamentos", agendamentosRouter);
 routes.use("/mapa", mapaRouter);
 routes.use("/neo4j", neo4jRouter);
+routes.use("/relatorios", relatoriosRouter);
 
 export { routes };

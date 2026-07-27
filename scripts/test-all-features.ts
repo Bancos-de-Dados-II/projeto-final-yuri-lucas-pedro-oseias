@@ -285,7 +285,26 @@ async function runAutomatedTests() {
     );
 
     // ----------------------------------------------------
-    // TESTE 17: Limpeza / Exclusão (DELETE)
+    // TESTE 17: Geração de Relatórios em PDF (RF15)
+    // ----------------------------------------------------
+    const pdfBenRes = await fetch(`${baseUrl}/relatorios/beneficiarios/pdf`, { headers: authHeaders });
+    const pdfBenType = pdfBenRes.headers.get("content-type");
+
+    const pdfVisRes = await fetch(`${baseUrl}/relatorios/visitas/pdf`, { headers: authHeaders });
+    const pdfVisType = pdfVisRes.headers.get("content-type");
+
+    assert(
+      pdfBenRes.status === 200 && !!pdfBenType && pdfBenType.includes("application/pdf"),
+      "17. Geração de Relatório de Beneficiários em PDF (RF15 - GET /relatorios/beneficiarios/pdf)"
+    );
+
+    assert(
+      pdfVisRes.status === 200 && !!pdfVisType && pdfVisType.includes("application/pdf"),
+      "18. Geração de Relatório de Visitas Domiciliares em PDF (RF15 - GET /relatorios/visitas/pdf)"
+    );
+
+    // ----------------------------------------------------
+    // TESTE 19: Limpeza / Exclusão (DELETE)
     // ----------------------------------------------------
     const delBenRes = await fetch(`${baseUrl}/beneficiarios/${beneficiarioId}`, {
       method: "DELETE",
