@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { beneficiarioRepository, cleanCPF } from "../repositories/BeneficiarioRepository.ts";
 import { familiaRepository } from "../repositories/FamiliaRepository.ts";
+import { beneficiarioLogRepository } from "../repositories/BeneficiarioLogRepository.ts";
 
 export class BeneficiarioController {
   // CREATE - Cadastrar Beneficiário
@@ -41,6 +42,15 @@ export class BeneficiarioController {
         fotoUrl: fotoUrl || null,
         situacaoSocial: situacaoSocial || null,
         familiaId: numFamiliaId,
+      });
+
+      // Salva log no MongoDB
+      const usuarioId = (req as any).user?.id || req.body.usuarioId || 0;
+      await beneficiarioLogRepository.saveLog({
+        beneficiarioId: novoBeneficiario.id,
+        usuarioId,
+        acao: "CREATE",
+        dadosDepois: novoBeneficiario.toJSON(),
       });
 
       return res.status(201).json(novoBeneficiario);
@@ -137,6 +147,20 @@ export class BeneficiarioController {
       if (familiaId) updateData.familiaId = Number(familiaId);
 
       const beneficiarioAtualizado = await beneficiarioRepository.update(id, updateData);
+      if (!beneficiarioAtualizado) {
+        return res.status(404).json({ error: "Beneficiário não encontrado." });
+      }
+
+      // Salva log no MongoDB
+      const usuarioId = (req as any).user?.id || req.body.usuarioId || 0;
+      await beneficiarioLogRepository.saveLog({
+        beneficiarioId: id,
+        usuarioId,
+        acao: "UPDATE",
+        dadosAntes: beneficiarioExistente.toJSON(),
+        dadosDepois: beneficiarioAtualizado.toJSON(),
+      });
+
       return res.json(beneficiarioAtualizado);
     } catch (error: any) {
       console.error("Erro ao atualizar beneficiário:", error);
@@ -155,10 +179,24 @@ export class BeneficiarioController {
         return res.status(400).json({ error: "ID inválido." });
       }
 
+      const beneficiarioExistente = await beneficiarioRepository.findById(id);
+      if (!beneficiarioExistente) {
+        return res.status(404).json({ error: "Beneficiário não encontrado." });
+      }
+
       const deletado = await beneficiarioRepository.delete(id);
       if (!deletado) {
         return res.status(404).json({ error: "Beneficiário não encontrado." });
       }
+
+      // Salva log no MongoDB
+      const usuarioId = (req as any).user?.id || req.body.usuarioId || 0;
+      await beneficiarioLogRepository.saveLog({
+        beneficiarioId: id,
+        usuarioId,
+        acao: "DELETE",
+        dadosAntes: beneficiarioExistente.toJSON(),
+      });
 
       return res.json({ message: "Beneficiário excluído com sucesso." });
     } catch (error) {

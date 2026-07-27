@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agendamentos de Atendimentos · GeoPB Comunidades</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 1rem;
+  }
+  .modal-overlay.is-visible {
+    display: flex;
+  }
+  .modal-card {
+    background: #fff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 580px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-line, #E1D6C4);
+  }
+  .modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+  }
+  .form-grid-full {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+  }
+  .agenda-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .agenda-card {
+    background: #fff;
+    border: 1px solid var(--color-line, #E1D6C4);
+    border-radius: 10px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  }
+  .agenda-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+  }
+  .agenda-status-badge {
+    align-self: flex-start;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .agenda-status-badge.pendente {
+    background: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fde68a;
+  }
+  .agenda-status-badge.confirmado {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+  }
+  .agenda-status-badge.realizado {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+  }
+  .agenda-status-badge.cancelado {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+  }
+  .agenda-time {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--color-ink-soft);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .agenda-beneficiario {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+    margin: 0 0 0.5rem 0;
+  }
+  .agenda-obs {
+    font-size: 0.88rem;
+    color: #475569;
+    background: #f8fafc;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 1rem;
+    font-style: italic;
+    min-height: 40px;
+  }
+  .agenda-actions {
+    display: flex;
+    gap: 0.5rem;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 0.75rem;
+  }
+  .btn-action {
+    flex: 1;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-align: center;
+  }
+  .btn-action:hover {
+    background: #f1f5f9;
+  }
+  .btn-action.confirm {
+    color: #2563eb;
+    border-color: #bfdbfe;
+    background: #eff6ff;
+  }
+  .btn-action.confirm:hover {
+    background: #dbeafe;
+  }
+  .btn-action.complete {
+    color: #16a34a;
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+  }
+  .btn-action.complete:hover {
+    background: #dcfce7;
+  }
+  .btn-action.cancel {
+    color: #dc2626;
+    border-color: #fca5a5;
+    background: #fee2e2;
+  }
+  .btn-action.cancel:hover {
+    background: #fee2e2;
+  }
+  .btn-action.delete {
+    max-width: 40px;
+    color: #64748b;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ Sidebar ============ -->
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <span class="brand__mark" aria-hidden="true"></span>
+      GeoPB Comunidades
+    </div>
+
+    <nav aria-label="Navegação principal">
+      <a href="dashboard.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1"/><rect x="11" y="2.5" width="6.5" height="6.5" rx="1"/><rect x="2.5" y="11" width="6.5" height="6.5" rx="1"/><rect x="11" y="11" width="6.5" height="6.5" rx="1"/></svg>
+        Dashboard
+      </a>
+
+      <div class="sidebar__section-label">Beneficiários & Visitas</div>
+      <a href="beneficiarios.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="6.5" r="3"/><path d="M3.5 17c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" stroke-linecap="round"/></svg>
+        Beneficiários
+      </a>
+      <a href="familias.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="6" r="2.4"/><circle cx="14" cy="6" r="2.4"/><path d="M2.5 17c0-3 2-5 4.5-5s4.5 2 4.5 5M10.5 17c0-2.6 1.7-4.4 3.8-4.4S18 14.4 18 17" stroke-linecap="round"/></svg>
+        Famílias
+      </a>
+      <a href="visitas.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 2a6 6 0 00-6 6c0 4.5 6 10 6 10s6-5.5 6-10a6 6 0 00-6-6z"/><circle cx="10" cy="8" r="2"/></svg>
+        Visitas Domiciliares
+      </a>
+      <a href="agendamentos.html" class="sidebar__link is-active">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="4" width="15" height="13.5" rx="1.5"/><path d="M2.5 8h15M6.5 2.5v3M13.5 2.5v3" stroke-linecap="round"/></svg>
+        Agendamentos
+      </a>
+
+      <div class="sidebar__section-label">Administração</div>
+      <a href="usuarios.html" class="sidebar__link">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="6.5" r="2.8"/><path d="M2.5 17c0-3.3 2.5-5.5 5.5-5.5" stroke-linecap="round"/><path d="M13 9l1.4 1.4L17 7.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Usuários do sistema
+      </a>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="user-chip">
+        <div class="user-chip__avatar" id="sidebarAvatar">A</div>
+        <div class="user-chip__info">
+          <div class="user-chip__name" id="sidebarUserName">Carregando...</div>
+          <div class="user-chip__role" id="sidebarUserRole">Assistente Social</div>
+        </div>
+        <button id="logoutBtn" style="background:none; border:none; cursor:pointer; color:#888; margin-left:auto;" title="Sair">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 15l5-5-5-5M18 10H7M9 3H5a2 2 0 00-2 2v10a2 2 0 002 2h4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ Área Principal ============ -->
+  <main class="main-content">
+    <header class="topbar">
+      <div>
+        <h1 class="topbar__title">Agendamentos de Atendimentos</h1>
+        <p class="topbar__subtitle">Organize e planeje seus agendamentos de visitas às famílias</p>
+      </div>
+      <button class="btn-primary" id="btnNovoAgendamento">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 4v12M4 10h12" stroke-linecap="round"/></svg>
+        Agendar Atendimento
+      </button>
+    </header>
+
+    <section class="card" style="margin-bottom:1.5rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <h2 style="margin:0; font-size:1.1rem;">📅 Meus Compromissos Agendados</h2>
+        <div style="display:flex; gap:0.5rem;">
+          <select id="filterStatus" style="padding:0.4rem 0.75rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.9rem; background-color:#fff;">
+            <option value="">Todos os Status</option>
+            <option value="pendente">Pendente</option>
+            <option value="confirmado">Confirmado</option>
+            <option value="realizado">Realizado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="agendaList" class="agenda-grid">
+        <div style="grid-column: 1 / -1; text-align:center; padding:3rem; color:#666;">Carregando agendamentos...</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ Modal de Cadastro / Edição de Agendamento ============ -->
+<div class="modal-overlay" id="agendamentoModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="modalTitle">Novo Agendamento</h3>
+      <button class="btn-close" id="btnCloseModal">&times;</button>
+    </div>
+
+    <div class="form-error" id="modalError" style="display:none; margin-bottom:1rem; padding:0.75rem; background:#fee2e2; color:#991b1b; border-radius:6px; font-size:0.9rem;"></div>
+
+    <form id="agendamentoForm">
+      <div class="form-grid-full">
+        <div class="form-group">
+          <label for="beneficiarioId">Beneficiário *</label>
+          <select id="beneficiarioId" required>
+            <option value="">Selecione o beneficiário...</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dataAgendamento">Data *</label>
+            <input type="date" id="dataAgendamento" required>
+          </div>
+          <div class="form-group">
+            <label for="hora">Hora *</label>
+            <input type="time" id="hora" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status">
+            <option value="pendente">Pendente</option>
+            <option value="confirmado">Confirmado</option>
+            <option value="realizado">Realizado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="observacoes">Observações</label>
+          <textarea id="observacoes" rows="3" placeholder="Insira detalhes adicionais..."></textarea>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:0.5rem; border-top: 1px solid var(--color-line, #E1D6C4); padding-top:1rem;">
+        <button type="button" class="btn-secondary" id="btnCancelarModal" style="padding:0.5rem 1rem; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer;">Voltar</button>
+        <button type="submit" class="btn-primary" style="padding:0.5rem 1rem; border-radius:6px; background:var(--color-primary); color:#fff; border:none; cursor:pointer;">Confirmar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const API_URL = window.location.origin;
+  const token = localStorage.getItem('token');
+  const userJson = localStorage.getItem('user');
+
+  if (!token || !userJson) {
+    window.location.href = 'login.html';
+  }
+
+  const currentUser = JSON.parse(userJson);
+
+  // Set Sidebar user info
+  document.getElementById('sidebarUserName').textContent = currentUser.nome || 'Usuário';
+  document.getElementById('sidebarUserRole').textContent = currentUser.tipo === 'administrador' ? 'Administrador' : 'Assistente Social';
+  document.getElementById('sidebarAvatar').textContent = (currentUser.nome || 'U').substring(0, 2).toUpperCase();
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    window.location.href = 'login.html';
+  });
+
+  // Variables
+  let listAgendamentos = [];
+  let listBeneficiarios = [];
+
+  const agendaList = document.getElementById('agendaList');
+  const agendamentoModal = document.getElementById('agendamentoModal');
+  const agendamentoForm = document.getElementById('agendamentoForm');
+  const filterStatus = document.getElementById('filterStatus');
+  const modalError = document.getElementById('modalError');
+
+  // Load Beneficiaries for Dropdown
+  async function loadBeneficiarios() {
+    try {
+      const res = await fetch(`${API_URL}/beneficiarios`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        listBeneficiarios = await res.json();
+        const select = document.getElementById('beneficiarioId');
+        select.innerHTML = '<option value="">Selecione o beneficiário...</option>';
+        listBeneficiarios.forEach(b => {
+          const opt = document.createElement('option');
+          opt.value = b.id;
+          opt.textContent = `${b.nome} ${b.cpf ? '(CPF: ' + b.cpf + ')' : ''}`;
+          select.appendChild(opt);
+        });
+      }
+    } catch (err) {
+      console.error('Erro ao buscar beneficiários:', err);
+    }
+  }
+
+  // Load Agendamentos from API
+  async function loadAgendamentos() {
+    try {
+      const res = await fetch(`${API_URL}/agendamentos`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Falha ao carregar a lista de agendamentos.');
+      listAgendamentos = await res.json();
+      renderAgendamentos();
+    } catch (err) {
+      console.error(err);
+      agendaList.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:3rem; color:#dc2626;">Erro ao carregar agendamentos.</div>`;
+    }
+  }
+
+  // Render Agendamentos Grid
+  function renderAgendamentos() {
+    const statusFilter = filterStatus.value;
+    const filtered = statusFilter 
+      ? listAgendamentos.filter(a => a.status === statusFilter)
+      : listAgendamentos;
+
+    if (filtered.length === 0) {
+      agendaList.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:3rem; color:#666;">Nenhum agendamento encontrado.</div>`;
+      return;
+    }
+
+    agendaList.innerHTML = filtered.map(a => {
+      const dataFmt = a.dataAgendamento ? new Date(a.dataAgendamento + 'T00:00:00').toLocaleDateString('pt-BR') : '-';
+      const horaFmt = a.hora ? a.hora.substring(0, 5) : '-';
+      const beneficiario = a.beneficiario ? a.beneficiario.nome : `ID #${a.beneficiarioId}`;
+      const tecnico = a.usuario ? a.usuario.nome : `ID #${a.usuarioId}`;
+
+      // Gerar botões baseados no estado atual (máquina de estados)
+      let actionButtons = '';
+      if (a.status === 'pendente') {
+        actionButtons += `<button onclick="updateStatus(${a.id}, 'confirmado')" class="btn-action confirm">✔️ Confirmar</button>`;
+        actionButtons += `<button onclick="updateStatus(${a.id}, 'cancelado')" class="btn-action cancel">❌ Cancelar</button>`;
+      } else if (a.status === 'confirmado') {
+        actionButtons += `<button onclick="updateStatus(${a.id}, 'realizado')" class="btn-action complete">🎉 Concluir</button>`;
+        actionButtons += `<button onclick="updateStatus(${a.id}, 'cancelado')" class="btn-action cancel">❌ Cancelar</button>`;
+      }
+
+      // Botão de deletar agendamento
+      actionButtons += `<button onclick="deleteAgendamento(${a.id})" class="btn-action delete" title="Excluir agendamento">🗑️</button>`;
+
+      return `
+        <div class="agenda-card">
+          <div>
+            <div class="agenda-status-badge ${a.status}">${a.status}</div>
+            <h4 class="agenda-beneficiario">${escapeHtml(beneficiario)}</h4>
+            <div class="agenda-time">🗓️ ${dataFmt} às ${horaFmt}</div>
+            <div style="font-size:0.82rem; color:#64748b; margin-bottom:0.75rem;">Responsável: ${escapeHtml(tecnico)}</div>
+            <div class="agenda-obs">${escapeHtml(a.observacoes || 'Sem observações adicionais.')}</div>
+          </div>
+          <div class="agenda-actions">
+            ${actionButtons}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Update status (State Machine check occurs in backend, error is caught and shown here)
+  window.updateStatus = async function(id, newStatus) {
+    try {
+      const res = await fetch(`${API_URL}/agendamentos/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao alterar status.');
+      loadAgendamentos();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // Delete Agendamento
+  window.deleteAgendamento = async function(id) {
+    if (!confirm('Deseja realmente remover este agendamento?')) return;
+    try {
+      const res = await fetch(`${API_URL}/agendamentos/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Erro ao excluir agendamento.');
+      loadAgendamentos();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // Modal actions
+  const openModal = () => {
+    modalError.style.display = 'none';
+    agendamentoForm.reset();
+    agendamentoModal.classList.add('is-visible');
+  };
+
+  const closeModal = () => {
+    agendamentoModal.classList.remove('is-visible');
+  };
+
+  document.getElementById('btnNovoAgendamento').addEventListener('click', openModal);
+  document.getElementById('btnCloseModal').addEventListener('click', closeModal);
+  document.getElementById('btnCancelarModal').addEventListener('click', closeModal);
+
+  // Form submit
+  agendamentoForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    modalError.style.display = 'none';
+
+    const beneficiarioId = document.getElementById('beneficiarioId').value;
+    const dataAgendamento = document.getElementById('dataAgendamento').value;
+    const hora = document.getElementById('hora').value;
+    const statusVal = document.getElementById('status').value;
+    const observacoes = document.getElementById('observacoes').value;
+
+    try {
+      const res = await fetch(`${API_URL}/agendamentos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          beneficiarioId: Number(beneficiarioId),
+          dataAgendamento,
+          hora,
+          status: statusVal,
+          observacoes
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao criar agendamento.');
+
+      closeModal();
+      loadAgendamentos();
+    } catch (err) {
+      modalError.textContent = err.message;
+      modalError.style.display = 'block';
+    }
+  });
+
+  filterStatus.addEventListener('change', renderAgendamentos);
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[m]);
+  }
+
+  // Init
+  loadBeneficiarios();
+  loadAgendamentos();
+</script>
+</body>
+</html>
