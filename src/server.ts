@@ -2,6 +2,13 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
+
+if (typeof globalThis.crypto === "undefined") {
+  Object.defineProperty(globalThis, "crypto", {
+    value: crypto.webcrypto,
+  });
+}
 import { routes } from "./routes/index.ts";
 
 const app = express();

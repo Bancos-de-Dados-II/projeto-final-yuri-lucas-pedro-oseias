@@ -108,6 +108,7 @@ export class ProgramaSocialController {
       console.error("Erro ao deletar programa social:", error);
       return res.status(500).json({ error: "Erro interno ao deletar o programa social." });
     }
+  }
   // ASSOCIATE BENEFICIARY TO PROGRAM
   async associateBeneficiary(req: Request, res: Response) {
     try {
