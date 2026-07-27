@@ -1,4 +1,5 @@
-import { Usuario, UsuarioCreationAttributes, UsuarioAttributes } from "../models/index.ts";
+import { Usuario } from "../models/index.ts";
+import type { UsuarioCreationAttributes, UsuarioAttributes } from "../models/index.ts";
 
 export class UserRepository {
   async findByEmail(email: string): Promise<Usuario | null> {

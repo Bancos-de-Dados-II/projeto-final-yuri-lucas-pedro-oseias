@@ -1,4 +1,5 @@
 import { Usuario, TipoUsuario } from "./Usuario.ts";
+import type { UsuarioAttributes, UsuarioCreationAttributes } from "./Usuario.ts";
 import { Familia } from "./Familia.ts";
 import { Beneficiario } from "./Beneficiario.ts";
 import { Visita } from "./Visita.ts";
@@ -42,6 +43,8 @@ ProgramaSocial.belongsToMany(Beneficiario, {
 
 export {
   Usuario,
+  type UsuarioAttributes,
+  type UsuarioCreationAttributes,
   TipoUsuario,
   Familia,
   Beneficiario,
