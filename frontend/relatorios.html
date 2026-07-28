@@ -219,7 +219,8 @@
 
 <script>
   (function() {
-    const API_URL = window.location.origin.includes(':3333') ? '' : 'http://localhost:3333';
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
     const token = localStorage.getItem('geopb_token');
     const userRaw = localStorage.getItem('geopb_user');
 
