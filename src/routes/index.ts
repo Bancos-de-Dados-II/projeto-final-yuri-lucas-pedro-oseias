@@ -25,4 +25,14 @@ routes.use("/mapa", mapaRouter);
 routes.use("/neo4j", neo4jRouter);
 routes.use("/relatorios", relatoriosRouter);
 
+// Endpoint de Health Check para os serviços de Cloud (Render / Railway / Docker)
+routes.get("/health", (req, res) => {
+  return res.json({
+    status: "ok",
+    service: "GeoPB Comunidades API",
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || "production",
+  });
+});
+
 export { routes };
