@@ -3,9 +3,12 @@ FROM node:22-alpine
 
 WORKDIR /app
 
+# Instala ferramentas necessárias para compilação nativa (sqlite3)
+RUN apk add --no-cache make g++ python3
+
 # Copia dependências e instala
 COPY package*.json ./
-RUN npm ci --only=production || npm install
+RUN npm install
 
 # Copia código fonte
 COPY . .
