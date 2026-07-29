@@ -10,10 +10,9 @@ export async function connectMongo(): Promise<Db> {
   if (db) return db;
 
   try {
-    const isCloud = mongoUrl.includes("mongodb+srv://") || mongoUrl.includes("mongodb.net");
     client = new MongoClient(mongoUrl, {
       serverSelectionTimeoutMS: 10000,
-      ...(isCloud ? { tls: true, tlsAllowInvalidCertificates: true } : {}),
+      connectTimeoutMS: 10000,
     });
     await client.connect();
     db = client.db(dbName);
