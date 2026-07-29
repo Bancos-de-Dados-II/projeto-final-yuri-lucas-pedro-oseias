@@ -48,6 +48,7 @@ model Familia {
   rendaFamiliar   Decimal?                       @map("renda_familiar") @db.Decimal(10, 2)
   qtdMembros      Int                            @map("qtd_membros")
   createdAt       DateTime                       @default(now()) @map("created_at")
+  deletedAt       DateTime?                      @map("deleted_at")
 
   beneficiarios   Beneficiario[]
 
@@ -64,6 +65,7 @@ model Beneficiario {
   situacaoSocial  String?  @map("situacao_social")
   familiaId       Int      @map("familia_id")
   createdAt       DateTime @default(now()) @map("created_at")
+  deletedAt       DateTime? @map("deleted_at")
 
   familia         Familia               @relation(fields: [familiaId], references: [id])
   visitas         Visita[]

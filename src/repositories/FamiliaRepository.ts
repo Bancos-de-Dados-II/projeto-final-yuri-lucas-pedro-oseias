@@ -81,13 +81,33 @@ export class FamiliaRepository {
   }
 
   async delete(id: number): Promise<boolean> {
-    const familia = await Familia.findByPk(id, {
-      include: [{ model: Beneficiario, as: "beneficiarios" }],
-    });
-    if (!familia) return false;
+    const transaction = await sequelize.transaction();
+    try {
+      const familia = await Familia.findByPk(id, {
+        include: [{ model: Beneficiario, as: "beneficiarios" }],
+        transaction,
+      });
+      if (!familia) {
+        await transaction.rollback();
+        return false;
+      }
 
-    await familia.destroy();
-    return true;
+      // Deleção lógica (Soft Delete) em cascata de todos os beneficiários da família
+      if (familia.beneficiarios && familia.beneficiarios.length > 0) {
+        for (const beneficiario of familia.beneficiarios) {
+          await beneficiario.destroy({ transaction });
+        }
+      }
+
+      // Deleção lógica da família
+      await familia.destroy({ transaction });
+
+      await transaction.commit();
+      return true;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 }
 

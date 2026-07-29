@@ -11,9 +11,10 @@ export interface FamiliaAttributes {
   rendaFamiliar?: number | null;
   qtdMembros: number;
   createdAt?: Date;
+  deletedAt?: Date | null;
 }
 
-export interface FamiliaCreationAttributes extends Optional<FamiliaAttributes, "id" | "localizacao" | "rendaFamiliar" | "createdAt"> {}
+export interface FamiliaCreationAttributes extends Optional<FamiliaAttributes, "id" | "localizacao" | "rendaFamiliar" | "createdAt" | "deletedAt"> {}
 
 export class Familia extends Model<FamiliaAttributes, FamiliaCreationAttributes> implements FamiliaAttributes {
   public declare id: number;
@@ -25,6 +26,7 @@ export class Familia extends Model<FamiliaAttributes, FamiliaCreationAttributes>
   public declare rendaFamiliar: number | null;
   public declare qtdMembros: number;
   public declare readonly createdAt: Date;
+  public declare readonly deletedAt: Date | null;
 }
 
 Familia.init(
@@ -71,6 +73,7 @@ Familia.init(
     tableName: "tb_familia",
     underscored: true,
     timestamps: true,
+    paranoid: true, // Habilita soft delete
     updatedAt: false,
   }
 );

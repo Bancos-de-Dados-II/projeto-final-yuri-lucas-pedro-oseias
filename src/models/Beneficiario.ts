@@ -11,9 +11,10 @@ export interface BeneficiarioAttributes {
   situacaoSocial?: string | null;
   familiaId: number;
   createdAt?: Date;
+  deletedAt?: Date | null;
 }
 
-export interface BeneficiarioCreationAttributes extends Optional<BeneficiarioAttributes, "id" | "telefone" | "fotoUrl" | "situacaoSocial" | "createdAt"> {}
+export interface BeneficiarioCreationAttributes extends Optional<BeneficiarioAttributes, "id" | "telefone" | "fotoUrl" | "situacaoSocial" | "createdAt" | "deletedAt"> {}
 
 export class Beneficiario extends Model<BeneficiarioAttributes, BeneficiarioCreationAttributes> implements BeneficiarioAttributes {
   public declare id: number;
@@ -25,6 +26,7 @@ export class Beneficiario extends Model<BeneficiarioAttributes, BeneficiarioCrea
   public declare situacaoSocial: string | null;
   public declare familiaId: number;
   public declare readonly createdAt: Date;
+  public declare readonly deletedAt: Date | null;
 }
 
 Beneficiario.init(
@@ -77,6 +79,7 @@ Beneficiario.init(
     tableName: "tb_beneficiario",
     underscored: true,
     timestamps: true,
+    paranoid: true, // Habilita soft delete
     updatedAt: false,
   }
 );
