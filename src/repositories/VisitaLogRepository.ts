@@ -27,15 +27,17 @@ export class VisitaLogRepository {
   }
 
   async saveLog(log: Omit<VisitaLog, "timestamp">): Promise<void> {
+    const colecao = "visitas_logs";
+    const logDoc: VisitaLog = {
+      ...log,
+      timestamp: new Date(),
+    };
+    console.log(`[MongoDB Debug] Tentando salvar log na coleção [${colecao}]:`, JSON.stringify(logDoc, null, 2));
     try {
-      const logDoc: VisitaLog = {
-        ...log,
-        timestamp: new Date(),
-      };
-      await this.getCollection().insertOne(logDoc);
-      console.log(`Log de visita #${log.visitaId} (${log.acao}) salvo no MongoDB.`);
-    } catch (error) {
-      console.error(`Erro ao salvar log no MongoDB para visita #${log.visitaId}:`, error);
+      const result = await this.getCollection().insertOne(logDoc);
+      console.log(`✓ [MongoDB] Documento inserido com sucesso na coleção [${colecao}]. ID gerado: ${result.insertedId}`);
+    } catch (error: any) {
+      console.error(`❌ [MongoDB Erro] Falha ao salvar log na coleção [${colecao}] para visita #${log.visitaId}:`, error?.message || error);
     }
   }
 
