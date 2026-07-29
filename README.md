@@ -149,22 +149,36 @@ Antes de rodar o projeto, crie um arquivo `.env` na raiz copiando as variáveis 
    docker compose up -d
    ```
 
-3. **Instale as dependências:**
+4. **Instale as dependências:**
    ```bash
    npm install
    ```
 
-4. **Prepare as tabelas do PostgreSQL via Prisma Client:**
+5. **Prepare as tabelas do PostgreSQL via Prisma Client:**
    ```bash
-   npx prisma generate
+   npx prisma db push
    ```
 
-5. **Inicie o servidor de desenvolvimento:**
+6. **Execute o script de seed para popular os bancos:**
+   ```bash
+   npx tsx -r dotenv/config scripts/seed.ts
+   ```
+
+7. **Inicie o servidor de desenvolvimento:**
    ```bash
    npm run dev
    ```
 
 A API estará disponível na porta `3333`, e o frontend pode ser acessado direto em [http://localhost:3333](http://localhost:3333).
+
+### 🔑 Credenciais Padrão de Acesso
+
+Após rodar o script de seed, você poderá fazer login no sistema usando os seguintes usuários pré-configurados:
+
+| Usuário | E-mail | Senha | Função |
+|---------|--------|-------|--------|
+| **Administrador** | `admin@geopb.gov.br` | `admin123` | Acesso total ao sistema, relatórios e grafos |
+| **Assistente Social** | `assistente@geopb.gov.br` | `user123` | Cadastro de famílias, beneficiários e visitas |
 
 ---
 
