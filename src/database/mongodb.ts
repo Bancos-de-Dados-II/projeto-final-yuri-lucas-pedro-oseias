@@ -1,6 +1,6 @@
 import { MongoClient, Db } from "mongodb";
 
-const mongoUrl = process.env.MONGO_URL || "mongodb://admin:admin@127.0.0.1:27017/geopb?authSource=admin";
+const mongoUrl = process.env.MONGO_URI || process.env.MONGO_URL || "mongodb://admin:admin@127.0.0.1:27017/geopb?authSource=admin";
 const dbName = process.env.MONGO_DB_NAME || "geopb";
 
 let client: MongoClient | null = null;
