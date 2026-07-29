@@ -10,15 +10,17 @@ export async function connectMongo(): Promise<Db> {
   if (db) return db;
 
   try {
+    const isCloud = mongoUrl.includes("mongodb+srv://") || mongoUrl.includes("mongodb.net");
     client = new MongoClient(mongoUrl, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000,
+      ...(isCloud ? { tls: true, tlsAllowInvalidCertificates: true } : {}),
     });
     await client.connect();
     db = client.db(dbName);
     console.log("Conectado ao MongoDB com sucesso.");
     return db;
   } catch (error) {
-    console.error("Erro ao conectar ao MongoDB:", error);
+    console.error("Erro ao conectar ao MongoDB:", (error as any)?.message || error);
     throw error;
   }
 }
