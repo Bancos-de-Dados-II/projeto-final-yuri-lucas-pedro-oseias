@@ -6,7 +6,7 @@ const redisPort = Number(process.env.REDIS_PORT) || 6379;
 
 export const redis = redisUrl
   ? new Redis(redisUrl, {
-      tls: redisUrl.startsWith("rediss://") ? { rejectUnauthorized: false } : undefined,
+      tls: redisUrl.startsWith("rediss://") ? {} : undefined,
       maxRetriesPerRequest: null,
       connectTimeout: 10000,
       retryStrategy(times) {
