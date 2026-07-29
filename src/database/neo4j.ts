@@ -1,7 +1,7 @@
 import neo4j, { Driver, Session } from "neo4j-driver";
 
 const neo4jUri = process.env.NEO4J_URI || "bolt://127.0.0.1:7687";
-const neo4jUser = process.env.NEO4J_USER || "neo4j";
+const neo4jUser = process.env.NEO4J_USER || process.env.NEO4J_USERNAME || "neo4j";
 const neo4jPassword = process.env.NEO4J_PASSWORD || "password";
 
 let driver: Driver | null = null;
