@@ -6,10 +6,9 @@ const redisPort = Number(process.env.REDIS_PORT) || 6379;
 
 export const redis = redisUrl
   ? new Redis(redisUrl, {
-      lazyConnect: true,
-      maxRetriesPerRequest: 1,
-      connectTimeout: 2000,
-      enableOfflineQueue: false,
+      tls: redisUrl.startsWith("rediss://") ? { rejectUnauthorized: false } : undefined,
+      maxRetriesPerRequest: 3,
+      connectTimeout: 10000,
     })
   : new Redis({
       host: redisHost,
@@ -17,13 +16,15 @@ export const redis = redisUrl
       lazyConnect: true,
       maxRetriesPerRequest: 1,
       connectTimeout: 2000,
-      enableOfflineQueue: false,
     });
 
+redis.on("connect", () => {
+  console.log("✓ Conectado ao Redis na nuvem com sucesso.");
+});
+
 redis.on("error", (err) => {
-  // Log silencioso para evitar flood nos logs em ambientes sem Redis
   if (process.env.NODE_ENV !== "test") {
-    console.error("Aviso Redis:", err.message);
+    console.warn("Aviso Redis (Cache/Sessão):", err.message);
   }
 });
 
