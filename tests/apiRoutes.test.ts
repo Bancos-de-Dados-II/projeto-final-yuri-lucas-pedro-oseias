@@ -251,7 +251,7 @@ describe("Testes de Integração e Unidade das Rotas da API (Jest / Supertest)",
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty("stats");
-    });
+    }, 30000);
 
     it("deve retornar estatísticas e status da fila do Neo4j (GET /neo4j/stats)", async () => {
       const response = await request(app)

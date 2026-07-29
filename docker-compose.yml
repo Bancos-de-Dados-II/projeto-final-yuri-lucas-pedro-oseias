@@ -37,6 +37,17 @@ services:
     volumes:
       - redis_data:/data
 
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight_projeto_final
+    restart: unless-stopped
+    depends_on:
+      - redis
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight_data:/data
+
   neo4j:
     image: neo4j:5
     container_name: neo4j_projeto_final
@@ -55,6 +66,7 @@ volumes:
   postgres_data:
   mongo_data:
   redis_data:
+  redisinsight_data:
   neo4j_data:
   neo4j_logs:
   neo4j_plugins:
