@@ -10,6 +10,16 @@ async function bootstrap() {
   try {
     console.log("Conectando e sincronizando banco relacional (Sequelize)...");
     await sequelize.authenticate();
+
+    if (sequelize.getDialect() === "postgres") {
+      try {
+        await sequelize.query("CREATE EXTENSION IF NOT EXISTS postgis;");
+        console.log("✓ Extensão PostGIS ativada no PostgreSQL.");
+      } catch (extErr) {
+        console.warn("Aviso ao ativar extensão PostGIS:", (extErr as any)?.message || extErr);
+      }
+    }
+
     await sequelize.sync();
     console.log("✓ Tabelas sincronizadas no banco de dados.");
 
