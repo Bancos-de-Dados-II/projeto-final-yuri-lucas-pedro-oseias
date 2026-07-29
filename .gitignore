@@ -5,6 +5,7 @@ web_modules/
 
 # Variáveis de ambiente e segredos
 .env
+database.sqlite
 .env.prod
 .env*.local
 .env.development.local
@@ -64,4 +65,4 @@ coverage/
 *.sln
 *.sw?
 .DS_Store
-Thumbs.db
+Thumbs.db
