@@ -17,9 +17,10 @@ export interface AgendamentoAttributes {
   beneficiarioId: number;
   usuarioId: number;
   createdAt?: Date;
+  deletedAt?: Date | null;
 }
 
-export interface AgendamentoCreationAttributes extends Optional<AgendamentoAttributes, "id" | "status" | "observacoes" | "createdAt"> {}
+export interface AgendamentoCreationAttributes extends Optional<AgendamentoAttributes, "id" | "status" | "observacoes" | "createdAt" | "deletedAt"> {}
 
 export class Agendamento extends Model<AgendamentoAttributes, AgendamentoCreationAttributes> implements AgendamentoAttributes {
   public declare id: number;
@@ -30,6 +31,7 @@ export class Agendamento extends Model<AgendamentoAttributes, AgendamentoCreatio
   public declare beneficiarioId: number;
   public declare usuarioId: number;
   public declare readonly createdAt: Date;
+  public declare readonly deletedAt: Date | null;
 }
 
 Agendamento.init(
@@ -81,6 +83,7 @@ Agendamento.init(
     tableName: "tb_agendamento",
     underscored: true,
     timestamps: true,
+    paranoid: true, // Habilita soft delete
     updatedAt: false,
   }
 );

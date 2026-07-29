@@ -1,4 +1,5 @@
-import { Beneficiario, BeneficiarioCreationAttributes, BeneficiarioAttributes, Familia, ProgramaSocial } from "../models/index.ts";
+import { Beneficiario, BeneficiarioCreationAttributes, BeneficiarioAttributes, Familia, ProgramaSocial, BeneficiarioPrograma, Agendamento, Visita } from "../models/index.ts";
+import { sequelize } from "../database/sequelize.ts";
 import { Op } from "sequelize";
 
 export function cleanCPF(cpf: string): string {
@@ -98,11 +99,41 @@ export class BeneficiarioRepository {
   }
 
   async delete(id: number): Promise<boolean> {
-    const beneficiario = await Beneficiario.findByPk(id);
-    if (!beneficiario) return false;
+    const transaction = await sequelize.transaction();
+    try {
+      const beneficiario = await Beneficiario.findByPk(id, { transaction });
+      if (!beneficiario) {
+        await transaction.rollback();
+        return false;
+      }
 
-    await beneficiario.destroy();
-    return true;
+      // 1. Remove relacionamentos na tabela N:M (Hard Delete já que é apenas uma relação sem histórico próprio)
+      await BeneficiarioPrograma.destroy({
+        where: { beneficiarioId: id },
+        transaction,
+      });
+
+      // 2. Soft Delete de todos os agendamentos vinculados ao beneficiário
+      await Agendamento.destroy({
+        where: { beneficiarioId: id },
+        transaction,
+      });
+
+      // 3. Soft Delete de todas as visitas vinculadas ao beneficiário
+      await Visita.destroy({
+        where: { beneficiarioId: id },
+        transaction,
+      });
+
+      // 4. Soft Delete do beneficiário
+      await beneficiario.destroy({ transaction });
+
+      await transaction.commit();
+      return true;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 }
 

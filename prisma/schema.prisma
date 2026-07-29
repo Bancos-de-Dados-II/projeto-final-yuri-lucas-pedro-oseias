@@ -81,11 +81,12 @@ model Visita {
   observacoes      String?
   acoesRealizadas  String?                        @map("acoes_realizadas")
   latitude         Decimal                        @db.Decimal(9, 6)
-  longitude        Decimal                        @db.Decimal(9, 6)
+  longitude       Decimal                        @db.Decimal(9, 6)
   localizacao      Unsupported("geometry(Point, 4326)")?
   beneficiarioId   Int                            @map("beneficiario_id")
   usuarioId        Int                            @map("usuario_id")
   createdAt        DateTime                       @default(now()) @map("created_at")
+  deletedAt        DateTime?                      @map("deleted_at")
 
   beneficiario     Beneficiario @relation(fields: [beneficiarioId], references: [id])
   usuario          Usuario      @relation(fields: [usuarioId], references: [id])
@@ -116,6 +117,7 @@ model Agendamento {
   beneficiarioId    Int               @map("beneficiario_id")
   usuarioId         Int               @map("usuario_id")
   createdAt         DateTime          @default(now()) @map("created_at")
+  deletedAt         DateTime?                      @map("deleted_at")
 
   beneficiario      Beneficiario @relation(fields: [beneficiarioId], references: [id])
   usuario          Usuario      @relation(fields: [usuarioId], references: [id])

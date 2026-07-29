@@ -12,9 +12,10 @@ export interface VisitaAttributes {
   beneficiarioId: number;
   usuarioId: number;
   createdAt?: Date;
+  deletedAt?: Date | null;
 }
 
-export interface VisitaCreationAttributes extends Optional<VisitaAttributes, "id" | "observacoes" | "acoesRealizadas" | "localizacao" | "createdAt"> {}
+export interface VisitaCreationAttributes extends Optional<VisitaAttributes, "id" | "observacoes" | "acoesRealizadas" | "localizacao" | "createdAt" | "deletedAt"> {}
 
 export class Visita extends Model<VisitaAttributes, VisitaCreationAttributes> implements VisitaAttributes {
   public declare id: number;
@@ -27,6 +28,7 @@ export class Visita extends Model<VisitaAttributes, VisitaCreationAttributes> im
   public declare beneficiarioId: number;
   public declare usuarioId: number;
   public declare readonly createdAt: Date;
+  public declare readonly deletedAt: Date | null;
 }
 
 Visita.init(
@@ -86,6 +88,7 @@ Visita.init(
     tableName: "tb_visita",
     underscored: true,
     timestamps: true,
+    paranoid: true, // Habilita soft delete
     updatedAt: false,
   }
 );
