@@ -1,56 +1,18 @@
 import { Request, Response } from "express";
-import { agendamentoRepository } from "../repositories/AgendamentoRepository.ts";
-import { StatusAgendamento } from "../models/Agendamento.ts";
-
-const VALID_TRANSITIONS: Record<StatusAgendamento, StatusAgendamento[]> = {
-  [StatusAgendamento.PENDENTE]: [StatusAgendamento.CONFIRMADO, StatusAgendamento.CANCELADO],
-  [StatusAgendamento.CONFIRMADO]: [StatusAgendamento.REALIZADO, StatusAgendamento.CANCELADO],
-  [StatusAgendamento.REALIZADO]: [],
-  [StatusAgendamento.CANCELADO]: [],
-};
+import { agendamentoService } from "../services/AgendamentoService.ts";
+import { AppError } from "../utils/AppError.ts";
 
 export class AgendamentoController {
   // CREATE
   async create(req: Request, res: Response) {
     try {
-      const { dataAgendamento, hora, status, observacoes, beneficiarioId } = req.body;
-
-      if (!dataAgendamento || !hora || !beneficiarioId) {
-        return res.status(400).json({ error: "Os campos 'dataAgendamento', 'hora' e 'beneficiarioId' são obrigatórios." });
-      }
-
-      // Obtém o usuarioId do token autenticado
       const usuarioId = (req as any).user?.id || req.body.usuarioId;
-      if (!usuarioId) {
-        return res.status(400).json({ error: "Identificação do usuário (usuarioId) é obrigatória." });
-      }
-
-      // Validação de Status
-      let validStatus = StatusAgendamento.PENDENTE;
-      if (status) {
-        if (!Object.values(StatusAgendamento).includes(status as StatusAgendamento)) {
-          return res.status(400).json({ error: "Status inválido. Escolha entre: pendente, confirmado, realizado, cancelado." });
-        }
-        validStatus = status as StatusAgendamento;
-      }
-
-      // Impedir agendamento no mesmo dia e horário para o mesmo assistente
-      const conflito = await agendamentoRepository.findConflito(Number(usuarioId), dataAgendamento, hora);
-      if (conflito) {
-        return res.status(400).json({ error: "Este assistente social já possui um agendamento neste dia e horário." });
-      }
-
-      const novoAgendamento = await agendamentoRepository.create({
-        dataAgendamento,
-        hora,
-        status: validStatus,
-        observacoes: observacoes || null,
-        beneficiarioId: Number(beneficiarioId),
-        usuarioId: Number(usuarioId),
-      });
-
+      const novoAgendamento = await agendamentoService.registerAgendamento(req.body, usuarioId);
       return res.status(201).json(novoAgendamento);
     } catch (error) {
+      if (error instanceof AppError) {
+        return res.status(error.statusCode).json({ error: error.message });
+      }
       console.error("Erro ao criar agendamento:", error);
       return res.status(500).json({ error: "Erro interno ao criar o agendamento." });
     }
@@ -63,7 +25,7 @@ export class AgendamentoController {
       const numBeneficiario = beneficiarioId ? Number(beneficiarioId) : undefined;
       const numUsuario = usuarioId ? Number(usuarioId) : undefined;
 
-      const agendamentos = await agendamentoRepository.findAll(numBeneficiario, numUsuario);
+      const agendamentos = await agendamentoService.listAgendamentos(numBeneficiario, numUsuario);
       return res.json(agendamentos);
     } catch (error) {
       console.error("Erro ao listar agendamentos:", error);
@@ -75,17 +37,12 @@ export class AgendamentoController {
   async show(req: Request, res: Response) {
     try {
       const id = Number(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "ID inválido." });
-      }
-
-      const agendamento = await agendamentoRepository.findById(id);
-      if (!agendamento) {
-        return res.status(404).json({ error: "Agendamento não encontrado." });
-      }
-
+      const agendamento = await agendamentoService.getAgendamentoById(id);
       return res.json(agendamento);
     } catch (error) {
+      if (error instanceof AppError) {
+        return res.status(error.statusCode).json({ error: error.message });
+      }
       console.error("Erro ao buscar agendamento por ID:", error);
       return res.status(500).json({ error: "Erro interno ao buscar o agendamento." });
     }
@@ -95,59 +52,14 @@ export class AgendamentoController {
   async update(req: Request, res: Response) {
     try {
       const id = Number(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "ID inválido." });
-      }
-
-      const agendamentoExistente = await agendamentoRepository.findById(id);
-      if (!agendamentoExistente) {
-        return res.status(404).json({ error: "Agendamento não encontrado." });
-      }
-
-      const { dataAgendamento, hora, status, observacoes, beneficiarioId } = req.body;
-
-      const updateData: any = {};
-      if (dataAgendamento !== undefined) updateData.dataAgendamento = dataAgendamento;
-      if (hora !== undefined) updateData.hora = hora;
-      if (observacoes !== undefined) updateData.observacoes = observacoes || null;
-      if (beneficiarioId !== undefined) updateData.beneficiarioId = Number(beneficiarioId);
-
-      if (status !== undefined) {
-        if (!Object.values(StatusAgendamento).includes(status as StatusAgendamento)) {
-          return res.status(400).json({ error: "Status inválido. Escolha entre: pendente, confirmado, realizado, cancelado." });
-        }
-
-        const statusAtual = agendamentoExistente.status;
-        const statusNovo = status as StatusAgendamento;
-
-        if (statusAtual !== statusNovo) {
-          const transicoesValidas = VALID_TRANSITIONS[statusAtual];
-          if (!transicoesValidas.includes(statusNovo)) {
-            return res.status(400).json({
-              error: `Transição de status inválida de '${statusAtual}' para '${statusNovo}'. Transições permitidas: ${transicoesValidas.join(", ") || "nenhuma (estado terminal)"}.`,
-            });
-          }
-        }
-
-        updateData.status = statusNovo;
-      }
-
-      // Impedir conflito se a data ou a hora mudarem para o mesmo assistente
-      const newDataAgendamento = dataAgendamento !== undefined ? dataAgendamento : agendamentoExistente.dataAgendamento;
-      const newHora = hora !== undefined ? hora : agendamentoExistente.hora;
-
-      if (dataAgendamento !== undefined || hora !== undefined) {
-        const conflito = await agendamentoRepository.findConflito(agendamentoExistente.usuarioId, newDataAgendamento, newHora);
-        if (conflito && conflito.id !== id) {
-          return res.status(400).json({ error: "Este assistente social já possui um agendamento neste dia e horário." });
-        }
-      }
-
-      const agendamentoAtualizado = await agendamentoRepository.update(id, updateData);
+      const agendamentoAtualizado = await agendamentoService.updateAgendamento(id, req.body);
       return res.json(agendamentoAtualizado);
     } catch (error) {
+      if (error instanceof AppError) {
+        return res.status(error.statusCode).json({ error: error.message });
+      }
       console.error("Erro ao atualizar agendamento:", error);
-      return res.status(500).json({ error: "Erro interno ao atualizar the agendamento." });
+      return res.status(500).json({ error: "Erro interno ao atualizar o agendamento." });
     }
   }
 
@@ -155,17 +67,12 @@ export class AgendamentoController {
   async delete(req: Request, res: Response) {
     try {
       const id = Number(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "ID inválido." });
-      }
-
-      const deletado = await agendamentoRepository.delete(id);
-      if (!deletado) {
-        return res.status(404).json({ error: "Agendamento não encontrado." });
-      }
-
+      await agendamentoService.deleteAgendamento(id);
       return res.json({ message: "Agendamento excluído com sucesso." });
     } catch (error) {
+      if (error instanceof AppError) {
+        return res.status(error.statusCode).json({ error: error.message });
+      }
       console.error("Erro ao deletar agendamento:", error);
       return res.status(500).json({ error: "Erro interno ao deletar o agendamento." });
     }
