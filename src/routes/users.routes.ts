@@ -2,6 +2,8 @@ import { Router } from "express";
 import { userController } from "../controllers/UserController.ts";
 import { authMiddleware } from "../middlewares/authMiddleware.ts";
 import { adminMiddleware } from "../middlewares/adminMiddleware.ts";
+import { validateBody } from "../middlewares/validate.ts";
+import { createUserSchema } from "../schemas/userSchema.ts";
 
 const usersRouter = Router();
 
@@ -9,7 +11,7 @@ const usersRouter = Router();
 usersRouter.use(authMiddleware, adminMiddleware);
 
 // POST /users - Criar Usuário
-usersRouter.post("/", (req, res) => userController.create(req, res));
+usersRouter.post("/", validateBody(createUserSchema), (req, res) => userController.create(req, res));
 
 // GET /users - Listar Todos os Usuários
 usersRouter.get("/", (req, res) => userController.index(req, res));
