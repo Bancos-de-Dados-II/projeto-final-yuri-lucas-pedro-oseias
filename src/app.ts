@@ -11,6 +11,7 @@ if (typeof globalThis.crypto === "undefined") {
 }
 
 import { routes } from "./routes/index.ts";
+import { swaggerSetup } from "./config/swagger.ts";
 
 const app = express();
 
@@ -30,6 +31,9 @@ app.use(express.static(path.resolve("frontend")));
 app.get("/", (req, res) => {
   res.redirect("/login.html");
 });
+
+// Inicializa a rota de documentação do Swagger
+swaggerSetup(app);
 
 app.use(routes);
 
