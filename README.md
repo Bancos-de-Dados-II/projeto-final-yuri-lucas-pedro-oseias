@@ -19,6 +19,10 @@ A autenticação é feita via JWT, e recursos de geolocalização permitem regis
 
 🚀 **Versão em Produção:** A API está hospedada e ativa no endereço: [https://api-projeto-final-banco-ii.onrender.com](https://api-projeto-final-banco-ii.onrender.com) (Endpoint de health check: `/health`).
 
+📖 **Documentação da API (Swagger):** Disponível de forma interativa para teste de rotas nos seguintes endereços:
+* Desenvolvimento Local: [http://localhost:3333/api-docs](http://localhost:3333/api-docs)
+* Produção: [https://api-projeto-final-banco-ii.onrender.com/api-docs](https://api-projeto-final-banco-ii.onrender.com/api-docs)
+
 ---
 
 *Desenvolvido como projeto acadêmico do curso de Análise e Desenvolvimento de Sistemas do IFPB — Campus Cajazeiras.*
