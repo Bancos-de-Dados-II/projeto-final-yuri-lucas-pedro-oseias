@@ -413,13 +413,9 @@
   (function() {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-    const token = (document.cookie.split(';').map(c => c.trim()).find(row => row.startsWith('geopb_token='))?.split('=')[1] || null);
     const userRaw = localStorage.getItem('geopb_user');
 
-    if (!token) {
-      window.location.href = 'login.html';
-      return;
-    }
+    if (!localStorage.getItem('geopb_user')) { window.location.href = 'login.html'; return; }
 
     if (userRaw) {
       try {
@@ -440,7 +436,6 @@
     const btnLogout = document.getElementById('btnLogout');
     if (btnLogout) {
       btnLogout.addEventListener('click', () => {
-        document.cookie = 'geopb_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
         localStorage.removeItem('geopb_user');
         window.location.href = 'login.html';
       });
@@ -457,8 +452,8 @@
       if (situacao && situacao !== 'Todas') params.append('situacaoSocial', situacao);
 
       try {
-        const res = await fetch(`${API_URL}/beneficiarios?${params.toString()}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch(`${API_URL}/beneficiarios?${params.toString()}`, { credentials: 'include',
+
         });
         if (!res.ok) throw new Error('Erro ao carregar beneficiários.');
 
@@ -563,9 +558,9 @@
 
           if (confirm(`Excluir o beneficiário ${nome}?`)) {
             try {
-              const res = await fetch(`${API_URL}/beneficiarios/${id}`, {
+              const res = await fetch(`${API_URL}/beneficiarios/${id}`, { credentials: 'include',
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+
               });
               if (!res.ok) {
                 const data = await res.json();
@@ -632,8 +627,8 @@
       countBadge.textContent = '...';
 
       try {
-        const res = await fetch(`${API_URL}/visitas?beneficiarioId=${beneficiarioId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch(`${API_URL}/visitas?beneficiarioId=${beneficiarioId}`, { credentials: 'include',
+
         });
 
         if (!res.ok) throw new Error('Falha ao carregar visitas.');

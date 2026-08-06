@@ -180,7 +180,7 @@
     submitBtn.textContent = 'Autenticando...';
 
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, { credentials: 'include',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -195,10 +195,10 @@
       }
 
       // Salva o token JWT e dados do usuário logado
-      document.cookie = 'geopb_token=' + data.token + '; path=/; max-age=86400;'
       localStorage.setItem('geopb_user', JSON.stringify(data.user));
 
       // Redireciona para a página dashboard.html
+      console.log("login efetuado!", data.status, data.message, response.status)
       window.location.href = 'dashboard.html';
     } catch (err) {
       errorBox.querySelector('span').textContent = err.message || 'Falha ao conectar com o servidor.';

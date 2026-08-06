@@ -202,13 +202,9 @@
   (function() {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-    const token = (document.cookie.split(';').map(c => c.trim()).find(row => row.startsWith('geopb_token='))?.split('=')[1] || null);
     const userRaw = localStorage.getItem('geopb_user');
 
-    if (!token) {
-      window.location.href = 'login.html';
-      return;
-    }
+    if (!localStorage.getItem('geopb_user')) { window.location.href = 'login.html'; return; }
 
     if (userRaw) {
       try {
@@ -229,7 +225,6 @@
     const btnLogout = document.getElementById('btnLogout');
     if (btnLogout) {
       btnLogout.addEventListener('click', () => {
-        document.cookie = 'geopb_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
         localStorage.removeItem('geopb_user');
         window.location.href = 'login.html';
       });
@@ -285,8 +280,8 @@
 
     async function fetchFamilias() {
       try {
-        const response = await fetch(`${API_URL}/familias`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch(`${API_URL}/familias`, { credentials: 'include',
+
         });
         if (!response.ok) {
           throw new Error('Erro ao carregar famílias.');
@@ -361,9 +356,9 @@
           const nome = btn.getAttribute('data-nome');
           if (confirm(`Deseja remover o cadastro da família de ${nome}?`)) {
             try {
-              const res = await fetch(`${API_URL}/familias/${id}`, {
+              const res = await fetch(`${API_URL}/familias/${id}`, { credentials: 'include',
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+
               });
               if (!res.ok) {
                 const data = await res.json();

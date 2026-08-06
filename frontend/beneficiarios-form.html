@@ -231,13 +231,9 @@
   (function() {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-    const token = (document.cookie.split(';').map(c => c.trim()).find(row => row.startsWith('geopb_token='))?.split('=')[1] || null);
     const userRaw = localStorage.getItem('geopb_user');
 
-    if (!token) {
-      window.location.href = 'login.html';
-      return;
-    }
+    if (!localStorage.getItem('geopb_user')) { window.location.href = 'login.html'; return; }
 
     if (userRaw) {
       try {
@@ -267,8 +263,8 @@
     async function loadFamiliasSelect(selectedFamiliaId = null) {
       const select = document.getElementById('familiaId');
       try {
-        const res = await fetch(`${API_URL}/familias`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch(`${API_URL}/familias`, { credentials: 'include',
+
         });
         if (!res.ok) throw new Error('Erro ao carregar famílias.');
 
@@ -311,11 +307,9 @@
       uploadStatus.style.color = 'var(--color-primary)';
 
       try {
-        const res = await fetch(`${API_URL}/upload`, {
+        const res = await fetch(`${API_URL}/upload`, { credentials: 'include',
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
+
           body: formData
         });
 
@@ -360,8 +354,8 @@
       }
 
       try {
-        const res = await fetch(`${API_URL}/beneficiarios/${beneficiarioId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch(`${API_URL}/beneficiarios/${beneficiarioId}`, { credentials: 'include',
+
         });
         if (!res.ok) throw new Error('Erro ao carregar dados do beneficiário.');
 
@@ -420,7 +414,6 @@
           method,
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify(payload)
         });

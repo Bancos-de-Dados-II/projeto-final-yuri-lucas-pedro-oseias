@@ -272,17 +272,11 @@
 
 <script>
   (async function () {
-    const token = (document.cookie.split(';').map(c => c.trim()).find(row => row.startsWith('geopb_token='))?.split('=')[1] || null);
     const userRaw = localStorage.getItem('geopb_user');
-
-    if (!token) {
-      window.location.href = 'login.html';
-      return;
-    }
+    if (!userRaw) { window.location.href = 'login.html'; return; }
 
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-    const headers = { 'Authorization': `Bearer ${token}` };
 
     // Popula info do usuário logado na sidebar e topbar
     if (userRaw) {
@@ -312,11 +306,10 @@
     if (btnLogout) {
       btnLogout.addEventListener('click', async () => {
         try {
-          await fetch(`${API_URL}/auth/logout`, { method: 'POST', headers });
+          await fetch(`${API_URL}/auth/logout`, { credentials: 'include', method: 'POST' });
         } catch (err) {
           console.error('Erro ao comunicar logout com o servidor:', err);
         } finally {
-          document.cookie = 'geopb_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
           localStorage.removeItem('geopb_user');
           window.location.href = 'login.html';
         }
@@ -327,7 +320,7 @@
     try {
       const miniMap = L.map('dashboardMiniMap', { zoomControl: false, dragging: false, scrollWheelZoom: false }).setView([-7.12, -36.7], 7);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
-      fetch(`${API_URL}/familias`, { headers })
+      fetch(`${API_URL}/familias`, { credentials: 'include' })
         .then(r => r.json())
         .then(familias => {
           if (Array.isArray(familias)) {
@@ -347,10 +340,10 @@
     // Busca todos os dados em paralelo
     try {
       const [beneficiarios, familias, visitas, agendamentos] = await Promise.all([
-        fetch(`${API_URL}/beneficiarios`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/familias`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/visitas`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/agendamentos`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/beneficiarios`, { credentials: 'include' }).then(r => r.json()),
+        fetch(`${API_URL}/familias`, { credentials: 'include' }).then(r => r.json()),
+        fetch(`${API_URL}/visitas`, { credentials: 'include' }).then(r => r.json()),
+        fetch(`${API_URL}/agendamentos`, { credentials: 'include' }).then(r => r.json()),
       ]);
 
       // ---- Stat cards ----

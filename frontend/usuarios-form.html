@@ -195,13 +195,9 @@
   (function() {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-    const token = (document.cookie.split(';').map(c => c.trim()).find(row => row.startsWith('geopb_token='))?.split('=')[1] || null);
     const userRaw = localStorage.getItem('geopb_user');
 
-    if (!token) {
-      window.location.href = 'login.html';
-      return;
-    }
+    if (!localStorage.getItem('geopb_user')) { window.location.href = 'login.html'; return; }
 
     let currentUser = null;
     if (userRaw) {
@@ -226,14 +222,13 @@
     if (btnLogout) {
       btnLogout.addEventListener('click', async () => {
         try {
-          await fetch(`${API_URL}/auth/logout`, {
+          await fetch(`${API_URL}/auth/logout`, { credentials: 'include',
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
+
           });
         } catch (err) {
           console.error('Erro ao realizar logout:', err);
         } finally {
-          document.cookie = 'geopb_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
           localStorage.removeItem('geopb_user');
           window.location.href = 'login.html';
         }
@@ -321,8 +316,8 @@
 
     async function loadUserData(id) {
       try {
-        const response = await fetch(`${API_URL}/users/${id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch(`${API_URL}/users/${id}`, { credentials: 'include',
+
         });
 
         if (!response.ok) {
@@ -392,7 +387,6 @@
           method,
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify(payload)
         });

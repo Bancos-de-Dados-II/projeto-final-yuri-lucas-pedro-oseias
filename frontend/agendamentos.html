@@ -349,12 +349,11 @@
 <script>
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-  const token = (document.cookie.split(';').map(c => c.trim()).find(row => row.startsWith('geopb_token='))?.split('=')[1] || null);
   const userJson = localStorage.getItem('geopb_user');
 
-  if (!token || !userJson) {
+  /*if (!token || !userJson) {
     window.location.href = 'login.html';
-  }
+  }*/
 
   const currentUser = JSON.parse(userJson || '{}');
 
@@ -365,7 +364,6 @@
 
   document.getElementById('logoutBtn').addEventListener('click', () => {
     localStorage.removeItem("geopb_user");
-    document.cookie = 'geopb_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     window.location.href = 'login.html';
   });
 
@@ -382,8 +380,8 @@
   // Load Beneficiaries for Dropdown
   async function loadBeneficiarios() {
     try {
-      const res = await fetch(`${API_URL}/beneficiarios`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await fetch(`${API_URL}/beneficiarios`, { credentials: 'include',
+
       });
       if (res.ok) {
         listBeneficiarios = await res.json();
@@ -404,8 +402,8 @@
   // Load Agendamentos from API
   async function loadAgendamentos() {
     try {
-      const res = await fetch(`${API_URL}/agendamentos`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await fetch(`${API_URL}/agendamentos`, { credentials: 'include',
+
       });
       if (!res.ok) throw new Error('Falha ao carregar a lista de agendamentos.');
       listAgendamentos = await res.json();
@@ -467,11 +465,10 @@
   // Update status (State Machine check occurs in backend, error is caught and shown here)
   window.updateStatus = async function(id, newStatus) {
     try {
-      const res = await fetch(`${API_URL}/agendamentos/${id}`, {
+      const res = await fetch(`${API_URL}/agendamentos/${id}`, { credentials: 'include',
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ status: newStatus })
       });
@@ -487,9 +484,9 @@
   window.deleteAgendamento = async function(id) {
     if (!confirm('Deseja realmente remover este agendamento?')) return;
     try {
-      const res = await fetch(`${API_URL}/agendamentos/${id}`, {
+      const res = await fetch(`${API_URL}/agendamentos/${id}`, { credentials: 'include',
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+
       });
       if (!res.ok) throw new Error('Erro ao excluir agendamento.');
       loadAgendamentos();
@@ -525,11 +522,10 @@
     const observacoes = document.getElementById('observacoes').value;
 
     try {
-      const res = await fetch(`${API_URL}/agendamentos`, {
+      const res = await fetch(`${API_URL}/agendamentos`, { credentials: 'include',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           beneficiarioId: Number(beneficiarioId),
