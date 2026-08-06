@@ -88,7 +88,7 @@
     <header class="topbar">
       <div class="topbar__title">
         <h1>Dashboard</h1>
-        <p>Bom te ver de volta, Lucas. Aqui está o panorama de hoje, 22 de julho.</p>
+        <p>Bom te ver de volta, <span id="topbarUserName">...</span>. Aqui está o panorama de hoje, <span id="topbarDate">...</span>.</p>
       </div>
       <div class="topbar__actions">
         <div class="search-input">
@@ -115,9 +115,9 @@
             <div class="stat-card__icon tone-primary">
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="6.5" r="3"/><path d="M3.5 17c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" stroke-linecap="round"/></svg>
             </div>
-            <span class="stat-card__trend">+12 este mês</span>
+            <span class="stat-card__trend" id="trendBeneficiarios">carregando...</span>
           </div>
-          <div class="stat-card__value">486</div>
+          <div class="stat-card__value" id="statBeneficiarios">—</div>
           <div class="stat-card__label">Beneficiários cadastrados</div>
         </div>
 
@@ -126,9 +126,9 @@
             <div class="stat-card__icon tone-accent">
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="6" r="2.4"/><circle cx="14" cy="6" r="2.4"/><path d="M2.5 17c0-3 2-5 4.5-5s4.5 2 4.5 5M10.5 17c0-2.6 1.7-4.4 3.8-4.4S18 14.4 18 17" stroke-linecap="round"/></svg>
             </div>
-            <span class="stat-card__trend">+5 este mês</span>
+            <span class="stat-card__trend" id="trendFamilias">carregando...</span>
           </div>
-          <div class="stat-card__value">213</div>
+          <div class="stat-card__value" id="statFamilias">—</div>
           <div class="stat-card__label">Famílias georreferenciadas</div>
         </div>
 
@@ -137,9 +137,9 @@
             <div class="stat-card__icon tone-success">
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 2.5c-3 0-5.5 2.3-5.5 5.6 0 4.1 5.5 9.4 5.5 9.4s5.5-5.3 5.5-9.4c0-3.3-2.5-5.6-5.5-5.6z"/><circle cx="10" cy="8.1" r="1.9"/></svg>
             </div>
-            <span class="stat-card__trend">37 na semana</span>
+            <span class="stat-card__trend" id="trendVisitas">carregando...</span>
           </div>
-          <div class="stat-card__value">1.204</div>
+          <div class="stat-card__value" id="statVisitas">—</div>
           <div class="stat-card__label">Visitas domiciliares registradas</div>
         </div>
 
@@ -148,9 +148,9 @@
             <div class="stat-card__icon tone-ink">
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="4" width="15" height="13.5" rx="1.5"/><path d="M2.5 8h15M6.5 2.5v3M13.5 2.5v3" stroke-linecap="round"/></svg>
             </div>
-            <span class="stat-card__trend is-flat">hoje</span>
+            <span class="stat-card__trend is-flat" id="trendAgendamentos">carregando...</span>
           </div>
-          <div class="stat-card__value">8</div>
+          <div class="stat-card__value" id="statAgendamentos">—</div>
           <div class="stat-card__label">Agendamentos pendentes</div>
         </div>
       </section>
@@ -167,67 +167,8 @@
             </div>
             <a href="visitas-registro.html" class="panel__link">Ver tudo</a>
           </div>
-          <ul class="activity-list">
-            <li class="activity-item">
-              <div class="activity-item__icon">
-                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 2.5c-3 0-5.5 2.3-5.5 5.6 0 4.1 5.5 9.4 5.5 9.4s5.5-5.3 5.5-9.4c0-3.3-2.5-5.6-5.5-5.6z"/><circle cx="10" cy="8.1" r="1.9"/></svg>
-              </div>
-              <div class="activity-item__body">
-                <p><strong>Maria da Conceição Silva</strong> recebeu visita domiciliar em São João do Rio do Peixe</p>
-                <div class="activity-item__meta">
-                  <span>Hoje, 09:42</span>
-                  <span class="tag tone-primary">Geolocalizada</span>
-                </div>
-              </div>
-            </li>
-            <li class="activity-item">
-              <div class="activity-item__icon">
-                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="6.5" r="3"/><path d="M3.5 17c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" stroke-linecap="round"/></svg>
-              </div>
-              <div class="activity-item__body">
-                <p>Novo beneficiário <strong>José Everaldo Lima</strong> cadastrado com foto de perfil</p>
-                <div class="activity-item__meta">
-                  <span>Hoje, 08:15</span>
-                  <span class="tag tone-accent">Novo cadastro</span>
-                </div>
-              </div>
-            </li>
-            <li class="activity-item">
-              <div class="activity-item__icon">
-                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10.5l4.5 4.5L16.5 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </div>
-              <div class="activity-item__body">
-                <p><strong>Família Nascimento Bezerra</strong> vinculada ao programa Bolsa Família</p>
-                <div class="activity-item__meta">
-                  <span>Ontem, 16:30</span>
-                  <span class="tag tone-success">Programa social</span>
-                </div>
-              </div>
-            </li>
-            <li class="activity-item">
-              <div class="activity-item__icon">
-                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="4" width="15" height="13.5" rx="1.5"/><path d="M2.5 8h15" /></svg>
-              </div>
-              <div class="activity-item__body">
-                <p>Agendamento com <strong>Antônia Ferreira Dias</strong> confirmado para sexta-feira</p>
-                <div class="activity-item__meta">
-                  <span>Ontem, 14:02</span>
-                  <span class="tag tone-neutral">Agendamento</span>
-                </div>
-              </div>
-            </li>
-            <li class="activity-item">
-              <div class="activity-item__icon">
-                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="6" r="2.4"/><circle cx="14" cy="6" r="2.4"/><path d="M2.5 17c0-3 2-5 4.5-5s4.5 2 4.5 5M10.5 17c0-2.6 1.7-4.4 3.8-4.4S18 14.4 18 17" stroke-linecap="round"/></svg>
-              </div>
-              <div class="activity-item__body">
-                <p>Coordenadas atualizadas para a <strong>Família Souza Melo</strong> em Cajazeiras</p>
-                <div class="activity-item__meta">
-                  <span>21 jul, 11:20</span>
-                  <span class="tag tone-primary">Geolocalizada</span>
-                </div>
-              </div>
-            </li>
+          <ul class="activity-list" id="activityList">
+            <li class="activity-item"><div class="activity-item__body"><p>Carregando atividades...</p></div></li>
           </ul>
         </div>
 
@@ -238,43 +179,12 @@
             <div class="panel__header">
               <div>
                 <h2>Agenda de hoje</h2>
-                <p>8 atendimentos programados</p>
+                <p id="agendaCount">carregando...</p>
               </div>
               <a href="agendamentos.html" class="panel__link">Ver agenda</a>
             </div>
-            <ul class="agenda-list">
-              <li class="agenda-item">
-                <span class="agenda-item__time">09:00</span>
-                <span class="agenda-item__dot tone-confirmado"></span>
-                <div class="agenda-item__body">
-                  <strong>Maria da Conceição Silva</strong>
-                  <span>Visita de acompanhamento</span>
-                </div>
-              </li>
-              <li class="agenda-item">
-                <span class="agenda-item__time">11:30</span>
-                <span class="agenda-item__dot tone-pendente"></span>
-                <div class="agenda-item__body">
-                  <strong>Família Nascimento Bezerra</strong>
-                  <span>Renovação de cadastro</span>
-                </div>
-              </li>
-              <li class="agenda-item">
-                <span class="agenda-item__time">14:00</span>
-                <span class="agenda-item__dot tone-confirmado"></span>
-                <div class="agenda-item__body">
-                  <strong>José Everaldo Lima</strong>
-                  <span>Primeira visita domiciliar</span>
-                </div>
-              </li>
-              <li class="agenda-item">
-                <span class="agenda-item__time">16:15</span>
-                <span class="agenda-item__dot tone-pendente"></span>
-                <div class="agenda-item__body">
-                  <strong>Antônia Ferreira Dias</strong>
-                  <span>Encaminhamento de programa</span>
-                </div>
-              </li>
+            <ul class="agenda-list" id="agendaList">
+              <li class="agenda-item"><div class="agenda-item__body"><span>Carregando agenda...</span></div></li>
             </ul>
           </div>
 
@@ -313,67 +223,8 @@
               <th>Status</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div class="person-cell">
-                  <div class="person-cell__avatar">MC</div>
-                  <div>
-                    <strong>Maria da Conceição Silva</strong>
-                    <span>CPF 042.***.***-10</span>
-                  </div>
-                </div>
-              </td>
-              <td>Família Silva Conceição</td>
-              <td>Vulnerabilidade moderada</td>
-              <td>Hoje, 09:42</td>
-              <td><span class="tag tone-success">Ativo</span></td>
-            </tr>
-            <tr>
-              <td>
-                <div class="person-cell">
-                  <div class="person-cell__avatar">JE</div>
-                  <div>
-                    <strong>José Everaldo Lima</strong>
-                    <span>CPF 118.***.***-44</span>
-                  </div>
-                </div>
-              </td>
-              <td>Família Lima Ferreira</td>
-              <td>Vulnerabilidade alta</td>
-              <td>Hoje, 08:15</td>
-              <td><span class="tag tone-accent">Novo</span></td>
-            </tr>
-            <tr>
-              <td>
-                <div class="person-cell">
-                  <div class="person-cell__avatar">AF</div>
-                  <div>
-                    <strong>Antônia Ferreira Dias</strong>
-                    <span>CPF 275.***.***-02</span>
-                  </div>
-                </div>
-              </td>
-              <td>Família Dias Ferreira</td>
-              <td>Vulnerabilidade moderada</td>
-              <td>Ontem, 14:02</td>
-              <td><span class="tag tone-neutral">Em acompanhamento</span></td>
-            </tr>
-            <tr>
-              <td>
-                <div class="person-cell">
-                  <div class="person-cell__avatar">RN</div>
-                  <div>
-                    <strong>Raimundo Nonato Bezerra</strong>
-                    <span>CPF 390.***.***-71</span>
-                  </div>
-                </div>
-              </td>
-              <td>Família Nascimento Bezerra</td>
-              <td>Vulnerabilidade alta</td>
-              <td>21 jul, 11:20</td>
-              <td><span class="tag tone-success">Ativo</span></td>
-            </tr>
+          <tbody id="beneficiariosTbody">
+            <tr><td colspan="5" style="text-align:center; padding: 1.5rem; color: var(--c-ink-400);">Carregando beneficiários...</td></tr>
           </tbody>
         </table>
       </section>
@@ -420,7 +271,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-  (function() {
+  (async function () {
     const token = (document.cookie.split(';').map(c => c.trim()).find(row => row.startsWith('geopb_token='))?.split('=')[1] || null);
     const userRaw = localStorage.getItem('geopb_user');
 
@@ -429,14 +280,54 @@
       return;
     }
 
-    // Inicializa Mini Mapa Leaflet no Dashboard
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
+    const headers = { 'Authorization': `Bearer ${token}` };
+
+    // Popula info do usuário logado na sidebar e topbar
+    if (userRaw) {
+      try {
+        const user = JSON.parse(userRaw);
+        const nameEl = document.getElementById('userName');
+        const roleEl = document.getElementById('userRole');
+        const avatarEl = document.getElementById('userAvatar');
+        const topbarNameEl = document.getElementById('topbarUserName');
+        if (nameEl) nameEl.textContent = user.nome || 'Usuário';
+        if (roleEl) roleEl.textContent = (user.tipo === 'administrador' ? 'Administrador' : 'Assistente Social') + ' · GeoPB';
+        if (avatarEl && user.nome) avatarEl.textContent = user.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        if (topbarNameEl) topbarNameEl.textContent = user.nome ? user.nome.split(' ')[0] : 'usuário';
+      } catch (e) {
+        console.error('Erro ao ler perfil do usuário:', e);
+      }
+    }
+
+    // Data atual na topbar
+    const topbarDateEl = document.getElementById('topbarDate');
+    if (topbarDateEl) {
+      topbarDateEl.textContent = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+    }
+
+    // Botão logout
+    const btnLogout = document.getElementById('btnLogout');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', async () => {
+        try {
+          await fetch(`${API_URL}/auth/logout`, { method: 'POST', headers });
+        } catch (err) {
+          console.error('Erro ao comunicar logout com o servidor:', err);
+        } finally {
+          document.cookie = 'geopb_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          localStorage.removeItem('geopb_user');
+          window.location.href = 'login.html';
+        }
+      });
+    }
+
+    // Mini mapa Leaflet
     try {
       const miniMap = L.map('dashboardMiniMap', { zoomControl: false, dragging: false, scrollWheelZoom: false }).setView([-7.12, -36.7], 7);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
-
-      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-      fetch(`${API_URL}/familias`, { headers: { 'Authorization': `Bearer ${token}` } })
+      fetch(`${API_URL}/familias`, { headers })
         .then(r => r.json())
         .then(familias => {
           if (Array.isArray(familias)) {
@@ -448,49 +339,142 @@
               }
             });
           }
-        }).catch(err => console.error("Erro ao carregar famílias no mini mapa:", err));
+        }).catch(err => console.error('Erro ao carregar famílias no mini mapa:', err));
     } catch (e) {
-      console.error("Erro ao carregar mini mapa:", e);
+      console.error('Erro ao carregar mini mapa:', e);
     }
 
-    if (userRaw) {
-      try {
-        const user = JSON.parse(userRaw);
-        const nameEl = document.getElementById('userName');
-        const roleEl = document.getElementById('userRole');
-        const avatarEl = document.getElementById('userAvatar');
+    // Busca todos os dados em paralelo
+    try {
+      const [beneficiarios, familias, visitas, agendamentos] = await Promise.all([
+        fetch(`${API_URL}/beneficiarios`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/familias`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/visitas`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/agendamentos`, { headers }).then(r => r.json()),
+      ]);
 
-        if (nameEl) nameEl.textContent = user.nome || 'Usuário';
-        if (roleEl) roleEl.textContent = (user.tipo === 'administrador' ? 'Administrador' : 'Assistente Social') + ' · GeoPB';
-        if (avatarEl && user.nome) {
-          const initials = user.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-          avatarEl.textContent = initials;
-        }
-      } catch (e) {
-        console.error('Erro ao ler perfil do usuário:', e);
+      // ---- Stat cards ----
+      if (Array.isArray(beneficiarios)) {
+        document.getElementById('statBeneficiarios').textContent = beneficiarios.length.toLocaleString('pt-BR');
+        document.getElementById('trendBeneficiarios').textContent = `total cadastrado${beneficiarios.length !== 1 ? 's' : ''}`;
       }
-    }
+      if (Array.isArray(familias)) {
+        document.getElementById('statFamilias').textContent = familias.length.toLocaleString('pt-BR');
+        document.getElementById('trendFamilias').textContent = `total georreferenciada${familias.length !== 1 ? 's' : ''}`;
+      }
+      if (Array.isArray(visitas)) {
+        document.getElementById('statVisitas').textContent = visitas.length.toLocaleString('pt-BR');
+        document.getElementById('trendVisitas').textContent = `total registrada${visitas.length !== 1 ? 's' : ''}`;
+      }
+      if (Array.isArray(agendamentos)) {
+        const pendentes = agendamentos.filter(a => a.status === 'pendente');
+        document.getElementById('statAgendamentos').textContent = pendentes.length.toLocaleString('pt-BR');
+        document.getElementById('trendAgendamentos').textContent = pendentes.length === 0 ? 'nenhum pendente' : 'pendente' + (pendentes.length !== 1 ? 's' : '');
+      }
 
-    const btnLogout = document.getElementById('btnLogout');
-    if (btnLogout) {
-      btnLogout.addEventListener('click', async () => {
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-        try {
-          await fetch(`${API_URL}/auth/logout`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-        } catch (err) {
-          console.error('Erro ao comunicar logout com o servidor:', err);
-        } finally {
-          document.cookie = 'geopb_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-          localStorage.removeItem('geopb_user');
-          window.location.href = 'login.html';
+      // ---- Atividade recente: últimas 5 visitas ----
+      if (Array.isArray(visitas)) {
+        const recentes = [...visitas].reverse().slice(0, 5);
+        const activityList = document.getElementById('activityList');
+        if (activityList) {
+          if (recentes.length === 0) {
+            activityList.innerHTML = '<li class="activity-item"><div class="activity-item__body"><p>Nenhuma visita registrada ainda.</p></div></li>';
+          } else {
+            activityList.innerHTML = recentes.map(v => {
+              const data = v.dataVisita ? new Date(v.dataVisita + 'T00:00:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }) : '—';
+              const nomeBenef = v.beneficiario?.nome || 'Beneficiário';
+              const nomeUser = v.usuario?.nome || '';
+              return `<li class="activity-item">
+                <div class="activity-item__icon">
+                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 2.5c-3 0-5.5 2.3-5.5 5.6 0 4.1 5.5 9.4 5.5 9.4s5.5-5.3 5.5-9.4c0-3.3-2.5-5.6-5.5-5.6z"/><circle cx="10" cy="8.1" r="1.9"/></svg>
+                </div>
+                <div class="activity-item__body">
+                  <p><strong>${nomeBenef}</strong> recebeu visita domiciliar${nomeUser ? ` · ${nomeUser}` : ''}</p>
+                  <div class="activity-item__meta">
+                    <span>${data}</span>
+                    <span class="tag tone-primary">Visita</span>
+                  </div>
+                </div>
+              </li>`;
+            }).join('');
+          }
         }
-      });
+      }
+
+      // ---- Agenda de hoje ----
+      if (Array.isArray(agendamentos)) {
+        const hoje = new Date().toISOString().split('T')[0];
+        const agendamentosHoje = agendamentos
+          .filter(a => a.dataAgendamento === hoje)
+          .sort((a, b) => (a.hora || '').localeCompare(b.hora || ''));
+
+        const agendaCountEl = document.getElementById('agendaCount');
+        if (agendaCountEl) {
+          agendaCountEl.textContent = agendamentosHoje.length === 0
+            ? 'Nenhum atendimento hoje'
+            : `${agendamentosHoje.length} atendimento${agendamentosHoje.length !== 1 ? 's' : ''} para hoje`;
+        }
+
+        const agendaListEl = document.getElementById('agendaList');
+        if (agendaListEl) {
+          if (agendamentosHoje.length === 0) {
+            agendaListEl.innerHTML = '<li class="agenda-item"><div class="agenda-item__body"><span>Nenhum agendamento para hoje.</span></div></li>';
+          } else {
+            agendaListEl.innerHTML = agendamentosHoje.slice(0, 5).map(a => {
+              const hora = a.hora ? a.hora.substring(0, 5) : '--:--';
+              const nomeBenef = a.beneficiario?.nome || 'Beneficiário';
+              const obs = a.observacoes || a.status || '';
+              return `<li class="agenda-item">
+                <span class="agenda-item__time">${hora}</span>
+                <span class="agenda-item__dot tone-${a.status}"></span>
+                <div class="agenda-item__body">
+                  <strong>${nomeBenef}</strong>
+                  <span>${obs}</span>
+                </div>
+              </li>`;
+            }).join('');
+          }
+        }
+      }
+
+      // ---- Beneficiários recentes: últimos 5 ----
+      if (Array.isArray(beneficiarios)) {
+        const recentes = [...beneficiarios].reverse().slice(0, 5);
+        const tbody = document.getElementById('beneficiariosTbody');
+        if (tbody) {
+          if (recentes.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:1.5rem;">Nenhum beneficiário cadastrado.</td></tr>';
+          } else {
+            tbody.innerHTML = recentes.map(b => {
+              const initials = b.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+              const cpfMasked = b.cpf ? `${b.cpf.substring(0, 3)}.***.***-${b.cpf.slice(-2)}` : '—';
+              const dataAtualizado = b.updatedAt
+                ? new Date(b.updatedAt).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+                : '—';
+              const situacao = b.situacaoSocial || '—';
+              const familia = b.familia?.nomeResponsavel || '—';
+              return `<tr>
+                <td>
+                  <div class="person-cell">
+                    <div class="person-cell__avatar">${initials}</div>
+                    <div>
+                      <strong>${b.nome}</strong>
+                      <span>CPF ${cpfMasked}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>${familia}</td>
+                <td>${situacao}</td>
+                <td>${dataAtualizado}</td>
+                <td><span class="tag tone-success">Ativo</span></td>
+              </tr>`;
+            }).join('');
+          }
+        }
+      }
+
+    } catch (err) {
+      console.error('Erro ao carregar dados do dashboard:', err);
     }
   })();
 </script>
