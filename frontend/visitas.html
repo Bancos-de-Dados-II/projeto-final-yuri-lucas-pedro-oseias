@@ -311,7 +311,7 @@
 <script>
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-  const token = (document.cookie.split('; ').find(row => row.startsWith('geopb_token='))?.split('=')[1] || null);
+  const token = (document.cookie.split(';').map(c => c.trim()).find(row => row.startsWith('geopb_token='))?.split('=')[1] || null);
   const user = JSON.parse(localStorage.getItem('geopb_user') || '{}');
 
   if (!token) {
@@ -326,7 +326,7 @@
   }
 
   document.getElementById('logoutBtn').addEventListener('click', () => {
-    document.cookie = 'geopb_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'geopb_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
     localStorage.removeItem('geopb_user');
     window.location.href = 'login.html';
   });

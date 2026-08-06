@@ -421,7 +421,7 @@
 
 <script>
   (function() {
-    const token = (document.cookie.split('; ').find(row => row.startsWith('geopb_token='))?.split('=')[1] || null);
+    const token = (document.cookie.split(';').map(c => c.trim()).find(row => row.startsWith('geopb_token='))?.split('=')[1] || null);
     const userRaw = localStorage.getItem('geopb_user');
 
     if (!token) {
@@ -486,7 +486,7 @@
         } catch (err) {
           console.error('Erro ao comunicar logout com o servidor:', err);
         } finally {
-          document.cookie = 'geopb_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          document.cookie = 'geopb_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
           localStorage.removeItem('geopb_user');
           window.location.href = 'login.html';
         }
