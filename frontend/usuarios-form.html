@@ -195,7 +195,7 @@
   (function() {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-    const token = localStorage.getItem('geopb_token');
+    const token = (document.cookie.split('; ').find(row => row.startsWith('geopb_token='))?.split('=')[1] || null);
     const userRaw = localStorage.getItem('geopb_user');
 
     if (!token) {
@@ -233,7 +233,7 @@
         } catch (err) {
           console.error('Erro ao realizar logout:', err);
         } finally {
-          localStorage.removeItem('geopb_token');
+          document.cookie = 'geopb_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
           localStorage.removeItem('geopb_user');
           window.location.href = 'login.html';
         }

@@ -195,7 +195,7 @@
       }
 
       // Salva o token JWT e dados do usuário logado
-      localStorage.setItem('geopb_token', data.token);
+      document.cookie = 'geopb_token=' + data.token + '; path=/; max-age=86400;';
       localStorage.setItem('geopb_user', JSON.stringify(data.user));
 
       // Redireciona para a página dashboard.html
