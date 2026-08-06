@@ -413,7 +413,7 @@
   (function() {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-    const token = localStorage.getItem('geopb_user');
+    const token = localStorage.getItem('geopb_token');
     const userRaw = localStorage.getItem('geopb_user');
 
     if (!token) {
@@ -440,7 +440,7 @@
     const btnLogout = document.getElementById('btnLogout');
     if (btnLogout) {
       btnLogout.addEventListener('click', () => {
-        
+        localStorage.removeItem('geopb_token');
         localStorage.removeItem('geopb_user');
         window.location.href = 'login.html';
       });
@@ -458,8 +458,8 @@
 
       try {
         const res = await fetch(`${API_URL}/beneficiarios?${params.toString()}`, {
-            credentials: 'include',
-          });
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (!res.ok) throw new Error('Erro ao carregar beneficiários.');
 
         allBeneficiarios = await res.json();
@@ -564,9 +564,9 @@
           if (confirm(`Excluir o beneficiário ${nome}?`)) {
             try {
               const res = await fetch(`${API_URL}/beneficiarios/${id}`, {
-            credentials: 'include',
                 method: 'DELETE',
-                });
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
               if (!res.ok) {
                 const data = await res.json();
                 throw new Error(data.error || 'Erro ao deletar beneficiário.');
@@ -633,8 +633,8 @@
 
       try {
         const res = await fetch(`${API_URL}/visitas?beneficiarioId=${beneficiarioId}`, {
-            credentials: 'include',
-          });
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
 
         if (!res.ok) throw new Error('Falha ao carregar visitas.');
 

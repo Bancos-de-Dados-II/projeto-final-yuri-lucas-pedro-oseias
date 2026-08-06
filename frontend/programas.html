@@ -291,7 +291,7 @@
 <script>
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-  const token = localStorage.getItem('geopb_user');
+  const token = localStorage.getItem('geopb_token');
   const userJson = localStorage.getItem('geopb_user');
 
   if (!token || !userJson) {
@@ -333,8 +333,8 @@
       const search = searchInput.value;
       const url = search ? `${API_URL}/programas-sociais?search=${encodeURIComponent(search)}` : `${API_URL}/programas-sociais`;
       const res = await fetch(url, {
-            credentials: 'include',
-        });
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!res.ok) throw new Error('Falha ao carregar programas sociais.');
       listProgramas = await res.json();
       renderProgramas();
@@ -348,8 +348,8 @@
   async function loadBeneficiarios() {
     try {
       const res = await fetch(`${API_URL}/beneficiarios`, {
-            credentials: 'include',
-        });
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (res.ok) {
         listBeneficiarios = await res.json();
         selectBeneficiario.innerHTML = '<option value="">Selecione o beneficiário...</option>';
@@ -431,8 +431,8 @@
       
       // Buscamos todos os beneficiários para filtrar os que têm este programa em sua lista
       const res = await fetch(`${API_URL}/beneficiarios`, {
-            credentials: 'include',
-        });
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       
       if (!res.ok) throw new Error('Erro ao buscar vinculados.');
       const beneficiarios = await res.json();
@@ -469,11 +469,11 @@
 
     try {
       const res = await fetch(`${API_URL}/programas-sociais/associar`, {
-            credentials: 'include',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          },
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           beneficiarioId: Number(beneficiarioId),
           programaId: activeProgramaId
@@ -495,11 +495,11 @@
     if (!confirm('Deseja realmente desassociar este beneficiário?')) return;
     try {
       const res = await fetch(`${API_URL}/programas-sociais/desassociar`, {
-            credentials: 'include',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          },
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           beneficiarioId,
           programaId: activeProgramaId
@@ -520,9 +520,9 @@
     if (!confirm('Deseja realmente excluir este programa social?')) return;
     try {
       const res = await fetch(`${API_URL}/programas-sociais/${id}`, {
-            credentials: 'include',
         method: 'DELETE',
-        });
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!res.ok) throw new Error('Erro ao excluir programa.');
       loadProgramas();
     } catch (err) {
@@ -579,11 +579,11 @@
       const method = id ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
-            credentials: 'include',
         method,
         headers: {
           'Content-Type': 'application/json',
-          },
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(payload)
       });
 

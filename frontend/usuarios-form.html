@@ -195,7 +195,7 @@
   (function() {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-    const token = localStorage.getItem('geopb_user');
+    const token = localStorage.getItem('geopb_token');
     const userRaw = localStorage.getItem('geopb_user');
 
     if (!token) {
@@ -227,13 +227,13 @@
       btnLogout.addEventListener('click', async () => {
         try {
           await fetch(`${API_URL}/auth/logout`, {
-            credentials: 'include',
             method: 'POST',
-            });
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
         } catch (err) {
           console.error('Erro ao realizar logout:', err);
         } finally {
-          
+          localStorage.removeItem('geopb_token');
           localStorage.removeItem('geopb_user');
           window.location.href = 'login.html';
         }
@@ -322,8 +322,8 @@
     async function loadUserData(id) {
       try {
         const response = await fetch(`${API_URL}/users/${id}`, {
-            credentials: 'include',
-          });
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
 
         if (!response.ok) {
           const errData = await response.json();
@@ -389,11 +389,11 @@
 
       try {
         const response = await fetch(endpoint, {
-            credentials: 'include',
           method,
           headers: {
             'Content-Type': 'application/json',
-            },
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify(payload)
         });
 
