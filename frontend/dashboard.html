@@ -421,7 +421,7 @@
 
 <script>
   (function() {
-    const token = localStorage.getItem('geopb_token');
+    const token = localStorage.getItem('geopb_user');
     const userRaw = localStorage.getItem('geopb_user');
 
     if (!token) {
@@ -436,7 +436,8 @@
 
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-      fetch(`${API_URL}/familias`, { headers: { 'Authorization': `Bearer ${token}` } })
+      fetch(`${API_URL}/familias`, {
+            credentials: 'include', })
         .then(r => r.json())
         .then(familias => {
           if (Array.isArray(familias)) {
@@ -478,15 +479,13 @@
       const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
         try {
           await fetch(`${API_URL}/auth/logout`, {
+            credentials: 'include',
             method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
+            });
         } catch (err) {
           console.error('Erro ao comunicar logout com o servidor:', err);
         } finally {
-          localStorage.removeItem('geopb_token');
+          
           localStorage.removeItem('geopb_user');
           window.location.href = 'login.html';
         }

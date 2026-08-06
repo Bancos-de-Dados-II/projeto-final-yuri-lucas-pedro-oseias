@@ -293,7 +293,7 @@
   (function() {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-    const token = localStorage.getItem('geopb_token');
+    const token = localStorage.getItem('geopb_user');
     const userRaw = localStorage.getItem('geopb_user');
 
     if (!token) {
@@ -313,7 +313,7 @@
     }
 
     document.getElementById('btnLogout').addEventListener('click', () => {
-      localStorage.removeItem('geopb_token');
+      
       localStorage.removeItem('geopb_user');
       window.location.href = 'login.html';
     });
@@ -373,8 +373,8 @@
     async function loadFamiliasAndVisitasMarkers() {
       try {
         const res = await fetch(`${API_URL}/familias`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+            credentials: 'include',
+          });
         if (res.ok) {
           const familias = await res.json();
           familias.forEach(f => {
@@ -404,8 +404,8 @@
     async function fetchGeoJson() {
       try {
         const response = await fetch(`${API_URL}/mapa/geojson`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+            credentials: 'include',
+          });
 
         if (!response.ok) {
           throw new Error('Falha ao carregar GeoJSON dos municípios da PB.');

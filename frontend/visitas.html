@@ -311,7 +311,7 @@
 <script>
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-  const token = localStorage.getItem('geopb_token');
+  const token = localStorage.getItem('geopb_user');
   const user = JSON.parse(localStorage.getItem('geopb_user') || '{}');
 
   if (!token) {
@@ -326,7 +326,7 @@
   }
 
   document.getElementById('logoutBtn').addEventListener('click', () => {
-    localStorage.removeItem('geopb_token');
+    
     localStorage.removeItem('geopb_user');
     window.location.href = 'login.html';
   });
@@ -355,8 +355,8 @@
   async function loadBeneficiarios() {
     try {
       const res = await fetch(`${API_URL}/beneficiarios`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+            credentials: 'include',
+        });
       if (res.ok) {
         listBeneficiarios = await res.json();
         
@@ -396,8 +396,8 @@
       url += params.join('&');
 
       const res = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+            credentials: 'include',
+        });
 
       if (!res.ok) throw new Error('Falha ao carregar visitas.');
       listVisitas = await res.json();
@@ -607,11 +607,11 @@
       const method = id ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
+            credentials: 'include',
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+          },
         body: JSON.stringify(payload)
       });
 
@@ -634,9 +634,9 @@
 
     try {
       const res = await fetch(`${API_URL}/visitas/${id}`, {
+            credentials: 'include',
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+        });
 
       if (!res.ok) {
         const data = await res.json();

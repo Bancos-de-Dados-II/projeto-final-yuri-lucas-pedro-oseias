@@ -349,7 +349,7 @@
 <script>
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const API_URL = isLocal ? (window.location.origin.includes(':3333') ? '' : 'http://localhost:3333') : '';
-  const token = localStorage.getItem('geopb_token');
+  const token = localStorage.getItem('geopb_user');
   const userJson = localStorage.getItem('geopb_user');
 
   if (!token || !userJson) {
@@ -382,8 +382,8 @@
   async function loadBeneficiarios() {
     try {
       const res = await fetch(`${API_URL}/beneficiarios`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+            credentials: 'include',
+        });
       if (res.ok) {
         listBeneficiarios = await res.json();
         const select = document.getElementById('beneficiarioId');
@@ -404,8 +404,8 @@
   async function loadAgendamentos() {
     try {
       const res = await fetch(`${API_URL}/agendamentos`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+            credentials: 'include',
+        });
       if (!res.ok) throw new Error('Falha ao carregar a lista de agendamentos.');
       listAgendamentos = await res.json();
       renderAgendamentos();
@@ -467,11 +467,11 @@
   window.updateStatus = async function(id, newStatus) {
     try {
       const res = await fetch(`${API_URL}/agendamentos/${id}`, {
+            credentials: 'include',
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+          },
         body: JSON.stringify({ status: newStatus })
       });
       const data = await res.json();
@@ -487,9 +487,9 @@
     if (!confirm('Deseja realmente remover este agendamento?')) return;
     try {
       const res = await fetch(`${API_URL}/agendamentos/${id}`, {
+            credentials: 'include',
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+        });
       if (!res.ok) throw new Error('Erro ao excluir agendamento.');
       loadAgendamentos();
     } catch (err) {
@@ -525,11 +525,11 @@
 
     try {
       const res = await fetch(`${API_URL}/agendamentos`, {
+            credentials: 'include',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+          },
         body: JSON.stringify({
           beneficiarioId: Number(beneficiarioId),
           dataAgendamento,
