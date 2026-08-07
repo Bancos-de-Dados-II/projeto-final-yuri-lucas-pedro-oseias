@@ -3,22 +3,8 @@ import path from "path";
 import fs from "fs";
 import { Request, Response, NextFunction } from "express";
 
-const UPLOAD_DIR = path.resolve("uploads");
-
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: (_req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, `file-${uniqueSuffix}${ext}`);
-  },
-});
+// Armazena temporariamente na memória RAM antes de converter para Base64/Data URI
+const storage = multer.memoryStorage();
 
 const allowedMimeTypes = [
   "image/jpeg",

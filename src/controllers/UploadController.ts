@@ -7,7 +7,9 @@ export class UploadController {
         return res.status(400).json({ error: "Nenhum arquivo foi enviado." });
       }
 
-      const fileUrl = `/uploads/${req.file.filename}`;
+      // Converte o arquivo recebido na memória para Data URL em Base64
+      const base64Data = req.file.buffer.toString("base64");
+      const fileUrl = `data:${req.file.mimetype};base64,${base64Data}`;
 
       return res.status(201).json({
         url: fileUrl,
