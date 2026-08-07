@@ -1,10 +1,15 @@
 import { Usuario, TipoUsuario } from "./Usuario.ts";
 import type { UsuarioAttributes, UsuarioCreationAttributes } from "./Usuario.ts";
 import { Familia } from "./Familia.ts";
+import type { FamiliaAttributes, FamiliaCreationAttributes } from "./Familia.ts";
 import { Beneficiario } from "./Beneficiario.ts";
+import type { BeneficiarioAttributes, BeneficiarioCreationAttributes } from "./Beneficiario.ts";
 import { Visita } from "./Visita.ts";
+import type { VisitaAttributes, VisitaCreationAttributes } from "./Visita.ts";
 import { ProgramaSocial } from "./ProgramaSocial.ts";
+import type { ProgramaSocialAttributes, ProgramaSocialCreationAttributes } from "./ProgramaSocial.ts";
 import { Agendamento, StatusAgendamento } from "./Agendamento.ts";
+import type { AgendamentoAttributes, AgendamentoCreationAttributes } from "./Agendamento.ts";
 import { BeneficiarioPrograma } from "./BeneficiarioPrograma.ts";
 
 // Relacionamento Familia <-> Beneficiario (1:N)
@@ -47,10 +52,20 @@ export {
   type UsuarioCreationAttributes,
   TipoUsuario,
   Familia,
+  type FamiliaAttributes,
+  type FamiliaCreationAttributes,
   Beneficiario,
+  type BeneficiarioAttributes,
+  type BeneficiarioCreationAttributes,
   Visita,
+  type VisitaAttributes,
+  type VisitaCreationAttributes,
   ProgramaSocial,
+  type ProgramaSocialAttributes,
+  type ProgramaSocialCreationAttributes,
   Agendamento,
+  type AgendamentoAttributes,
+  type AgendamentoCreationAttributes,
   StatusAgendamento,
   BeneficiarioPrograma,
 };

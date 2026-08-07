@@ -5,7 +5,7 @@ export const swaggerDocument = {
   info: {
     title: "GeoPB Comunidades API",
     version: "1.0.0",
-    description: "API RESTful em Node.js com Express para o sistema de gestão social GeoPB Comunidades. Utiliza persistência poliglota com PostgreSQL (PostGIS), MongoDB, Redis e Neo4j.",
+    description: "API RESTful em Node.js com Express para o sistema de gestão social GeoPB Comunidades. Utiliza persistência poliglota com PostgreSQL (PostGIS), MongoDB, Redis e Neo4j (Grafos).",
     contact: {
       name: "IFPB - Campus Cajazeiras"
     }
@@ -49,7 +49,7 @@ export const swaggerDocument = {
     "/auth/login": {
       post: {
         summary: "Realizar Login",
-        description: "Autentica um usuário e cria uma sessão ativa no Redis.",
+        description: "Autentica um usuário, emite o token JWT e define o cookie HttpOnly.",
         tags: ["Autenticação"],
         requestBody: {
           required: true,
@@ -82,8 +82,7 @@ export const swaggerDocument = {
                         email: { type: "string" },
                         tipo: { type: "string" }
                       }
-                    },
-                    token: { type: "string", description: "JWT a ser usado nos requests subsequentes" }
+                    }
                   }
                 }
               }
@@ -98,7 +97,7 @@ export const swaggerDocument = {
     "/auth/logout": {
       post: {
         summary: "Realizar Logout",
-        description: "Encerra a sessão ativa invalidando o token no Redis.",
+        description: "Encerra a sessão ativa invalidando o token no Redis e removendo o cookie HttpOnly.",
         tags: ["Autenticação"],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -115,15 +114,48 @@ export const swaggerDocument = {
               }
             }
           },
-          400: { description: "Cabeçalho de autorização ausente ou malformado." },
-          401: { description: "Token inválido ou sessão não encontrada no Redis." }
+          400: { description: "Token ausente." },
+          401: { description: "Sessão inválida ou não autenticada." }
+        }
+      }
+    },
+    "/auth/me": {
+      get: {
+        summary: "Dados do Usuário Logado",
+        description: "Retorna os dados do usuário autenticado a partir do token contido no cookie HttpOnly.",
+        tags: ["Autenticação"],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Dados do usuário logado",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    user: {
+                      type: "object",
+                      properties: {
+                        id: { type: "string", format: "uuid" },
+                        nome: { type: "string" },
+                        email: { type: "string" },
+                        tipo: { type: "string" },
+                        fotoUrl: { type: "string", nullable: true }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          401: { description: "Não autenticado." }
         }
       }
     },
     "/users": {
       post: {
         summary: "Cadastrar Usuário",
-        description: "Cria um novo usuário (Assistente Social ou Administrador).",
+        description: "Cria um novo usuário (Assistente Social ou Administrador). Exclusivo para administradores.",
         tags: ["Usuários"],
         security: [{ bearerAuth: [] }],
         requestBody: {
@@ -137,7 +169,8 @@ export const swaggerDocument = {
                   nome: { type: "string", example: "João Assistente" },
                   email: { type: "string", format: "email", example: "joao@geopb.gov.br" },
                   senha: { type: "string", example: "senha123" },
-                  tipo: { type: "string", enum: ["administrador", "assistente_social"], example: "assistente_social" }
+                  tipo: { type: "string", enum: ["administrador", "assistente_social"], example: "assistente_social" },
+                  fotoUrl: { type: "string", example: "data:image/png;base64,..." }
                 }
               }
             }
@@ -146,35 +179,77 @@ export const swaggerDocument = {
         responses: {
           201: { description: "Usuário criado com sucesso" },
           400: { description: "Dados inválidos ou e-mail já cadastrado." },
-          401: { description: "Não autorizado" }
+          401: { description: "Não autorizado" },
+          403: { description: "Acesso permitido apenas para administradores" }
         }
       },
       get: {
         summary: "Listar Usuários",
-        description: "Retorna a lista de todos os administradores e assistentes cadastrados.",
+        description: "Retorna a lista de todos os usuários cadastrados. Exclusivo para administradores.",
         tags: ["Usuários"],
         security: [{ bearerAuth: [] }],
         responses: {
-          200: {
-            description: "Lista de usuários",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      id: { type: "string", format: "uuid" },
-                      nome: { type: "string" },
-                      email: { type: "string" },
-                      tipo: { type: "string" }
-                    }
-                  }
+          200: { description: "Lista de usuários" },
+          401: { description: "Não autorizado" },
+          403: { description: "Acesso permitido apenas para administradores" }
+        }
+      }
+    },
+    "/users/{id}": {
+      get: {
+        summary: "Buscar Usuário por ID",
+        description: "Retorna as informações detalhadas de um usuário por ID. Exclusivo para administradores.",
+        tags: ["Usuários"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        responses: {
+          200: { description: "Dados do usuário" },
+          404: { description: "Usuário não encontrado" }
+        }
+      },
+      put: {
+        summary: "Atualizar Usuário",
+        description: "Atualiza os dados de um usuário pelo ID. Exclusivo para administradores.",
+        tags: ["Usuários"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  nome: { type: "string" },
+                  email: { type: "string", format: "email" },
+                  senha: { type: "string" },
+                  tipo: { type: "string", enum: ["administrador", "assistente_social"] },
+                  fotoUrl: { type: "string" }
                 }
               }
             }
-          },
-          401: { description: "Não autorizado" }
+          }
+        },
+        responses: {
+          200: { description: "Usuário atualizado" },
+          404: { description: "Usuário não encontrado" }
+        }
+      },
+      delete: {
+        summary: "Excluir Usuário",
+        description: "Remove um usuário do sistema pelo ID. Exclusivo para administradores.",
+        tags: ["Usuários"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        responses: {
+          200: { description: "Usuário removido com sucesso" },
+          404: { description: "Usuário não encontrado" }
         }
       }
     },
@@ -220,18 +295,56 @@ export const swaggerDocument = {
       }
     },
     "/familias/{id}": {
+      get: {
+        summary: "Buscar Família por ID",
+        description: "Retorna os detalhes de uma família por ID.",
+        tags: ["Famílias"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        responses: {
+          200: { description: "Detalhes da família" },
+          404: { description: "Família não encontrada" }
+        }
+      },
+      put: {
+        summary: "Atualizar Família",
+        description: "Atualiza os dados geográficos e cadastrais de uma família.",
+        tags: ["Famílias"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  nomeChefe: { type: "string" },
+                  latitude: { type: "number" },
+                  longitude: { type: "number" },
+                  endereco: { type: "string" },
+                  municipio: { type: "string" }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: { description: "Família atualizada com sucesso" },
+          404: { description: "Família não encontrada" }
+        }
+      },
       delete: {
         summary: "Excluir Família",
         description: "Exclui uma família pelo ID.",
         tags: ["Famílias"],
         security: [{ bearerAuth: [] }],
         parameters: [
-          {
-            name: "id",
-            in: "path",
-            required: true,
-            schema: { type: "string", format: "uuid" }
-          }
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
         ],
         responses: {
           200: { description: "Família excluída" },
@@ -252,14 +365,14 @@ export const swaggerDocument = {
             "application/json": {
               schema: {
                 type: "object",
-                required: ["nome", "cpf", "nis", "dataNascimento", "parentesco", "renda", "familiaId"],
+                required: ["nome", "cpf", "dataNascimento", "familiaId"],
                 properties: {
                   nome: { type: "string", example: "Lucas Silva" },
                   cpf: { type: "string", example: "11122233344" },
-                  nis: { type: "string", example: "12345678901" },
                   dataNascimento: { type: "string", format: "date", example: "1995-10-20" },
-                  parentesco: { type: "string", example: "Filho" },
-                  renda: { type: "number", example: 500.00 },
+                  telefone: { type: "string", example: "83999998888" },
+                  fotoUrl: { type: "string", example: "data:image/png;base64,..." },
+                  situacaoSocial: { type: "string", example: "Vulnerabilidade média" },
                   familiaId: { type: "string", format: "uuid" }
                 }
               }
@@ -268,13 +381,13 @@ export const swaggerDocument = {
         },
         responses: {
           201: { description: "Beneficiário cadastrado com sucesso" },
-          400: { description: "CPF ou NIS já em uso." },
+          400: { description: "CPF já em uso ou dados inválidos." },
           401: { description: "Não autorizado" }
         }
       },
       get: {
         summary: "Listar Beneficiários",
-        description: "Lista todos os beneficiários cadastrados, com paginação e filtros opcionais.",
+        description: "Lista todos os beneficiários cadastrados com filtros opcionais por nome ou CPF.",
         tags: ["Beneficiários"],
         security: [{ bearerAuth: [] }],
         parameters: [
@@ -288,9 +401,22 @@ export const swaggerDocument = {
       }
     },
     "/beneficiarios/{id}": {
+      get: {
+        summary: "Buscar Beneficiário por ID",
+        description: "Retorna os dados detalhados de um beneficiário.",
+        tags: ["Beneficiários"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        responses: {
+          200: { description: "Detalhes do beneficiário" },
+          404: { description: "Beneficiário não encontrado" }
+        }
+      },
       put: {
         summary: "Atualizar Beneficiário",
-        description: "Atualiza os dados de um beneficiário e grava um log de alteração no MongoDB.",
+        description: "Atualiza os dados de um beneficiário e gera registro de alteração de histórico no MongoDB.",
         tags: ["Beneficiários"],
         security: [{ bearerAuth: [] }],
         parameters: [
@@ -304,21 +430,26 @@ export const swaggerDocument = {
                 type: "object",
                 properties: {
                   nome: { type: "string" },
-                  renda: { type: "number" }
+                  cpf: { type: "string" },
+                  dataNascimento: { type: "string", format: "date" },
+                  telefone: { type: "string" },
+                  fotoUrl: { type: "string" },
+                  situacaoSocial: { type: "string" },
+                  familiaId: { type: "string", format: "uuid" }
                 }
               }
             }
           }
         },
         responses: {
-          200: { description: "Beneficiário atualizado" },
+          200: { description: "Beneficiário atualizado com sucesso" },
           401: { description: "Não autorizado" },
           404: { description: "Beneficiário não encontrado" }
         }
       },
       delete: {
         summary: "Excluir Beneficiário",
-        description: "Exclui um beneficiário pelo ID.",
+        description: "Exclui um beneficiário pelo ID (soft delete).",
         tags: ["Beneficiários"],
         security: [{ bearerAuth: [] }],
         parameters: [
@@ -326,14 +457,15 @@ export const swaggerDocument = {
         ],
         responses: {
           200: { description: "Beneficiário excluído" },
-          401: { description: "Não autorizado" }
+          401: { description: "Não autorizado" },
+          404: { description: "Beneficiário não encontrado" }
         }
       }
     },
     "/visitas": {
       post: {
         summary: "Registrar Visita",
-        description: "Registra uma visita domiciliar (PostgreSQL, MongoDB e vinculação no Neo4j).",
+        description: "Registra uma visita domiciliar associada a uma família (grava no PostgreSQL e log no MongoDB).",
         tags: ["Visitas"],
         security: [{ bearerAuth: [] }],
         requestBody: {
@@ -342,11 +474,11 @@ export const swaggerDocument = {
             "application/json": {
               schema: {
                 type: "object",
-                required: ["dataVisita", "observacoes", "situacao", "familiaId"],
+                required: ["dataVisita", "observacoes", "familiaId"],
                 properties: {
                   dataVisita: { type: "string", format: "date-time", example: "2026-07-30T18:00:00Z" },
                   observacoes: { type: "string", example: "Visita periódica para checagem de cadastro." },
-                  situacao: { type: "string", example: "Vulnerabilidade média" },
+                  situacao: { type: "string", example: "Vulnerabilidade alta" },
                   familiaId: { type: "string", format: "uuid" }
                 }
               }
@@ -354,7 +486,7 @@ export const swaggerDocument = {
           }
         },
         responses: {
-          201: { description: "Visita cadastrada" },
+          201: { description: "Visita cadastrada com sucesso" },
           401: { description: "Não autorizado" }
         }
       },
@@ -364,7 +496,65 @@ export const swaggerDocument = {
         tags: ["Visitas"],
         security: [{ bearerAuth: [] }],
         responses: {
-          200: { description: "Lista de visitas" }
+          200: { description: "Lista de visitas" },
+          401: { description: "Não autorizado" }
+        }
+      }
+    },
+    "/visitas/{id}": {
+      get: {
+        summary: "Buscar Visita por ID",
+        description: "Retorna os dados detalhados de uma visita registrada.",
+        tags: ["Visitas"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        responses: {
+          200: { description: "Detalhes da visita" },
+          404: { description: "Visita não encontrada" }
+        }
+      },
+      put: {
+        summary: "Atualizar Visita",
+        description: "Atualiza os dados de uma visita e salva o histórico no MongoDB.",
+        tags: ["Visitas"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  dataVisita: { type: "string", format: "date-time" },
+                  observacoes: { type: "string" },
+                  situacao: { type: "string" },
+                  familiaId: { type: "string", format: "uuid" }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: { description: "Visita atualizada com sucesso" },
+          404: { description: "Visita não encontrada" }
+        }
+      },
+      delete: {
+        summary: "Excluir Visita",
+        description: "Exclui um registro de visita pelo ID.",
+        tags: ["Visitas"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        responses: {
+          200: { description: "Visita excluída com sucesso" },
+          404: { description: "Visita não encontrada" }
         }
       }
     },
@@ -380,7 +570,7 @@ export const swaggerDocument = {
             "application/json": {
               schema: {
                 type: "object",
-                required: ["nome", "descricao", "beneficioMensal"],
+                required: ["nome", "descricao"],
                 properties: {
                   nome: { type: "string", example: "Bolsa Família Municipal" },
                   descricao: { type: "string", example: "Auxílio financeiro para famílias vulneráveis." },
@@ -393,12 +583,77 @@ export const swaggerDocument = {
         responses: {
           201: { description: "Programa social criado" }
         }
+      },
+      get: {
+        summary: "Listar Programas Sociais",
+        description: "Retorna a lista de todos os programas sociais cadastrados.",
+        tags: ["Programas Sociais"],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: "Lista de programas sociais" }
+        }
+      }
+    },
+    "/programas-sociais/{id}": {
+      get: {
+        summary: "Buscar Programa Social por ID",
+        description: "Retorna os detalhes de um programa social por ID.",
+        tags: ["Programas Sociais"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        responses: {
+          200: { description: "Detalhes do programa social" },
+          404: { description: "Programa social não encontrado" }
+        }
+      },
+      put: {
+        summary: "Atualizar Programa Social",
+        description: "Atualiza um programa social existente.",
+        tags: ["Programas Sociais"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  nome: { type: "string" },
+                  descricao: { type: "string" },
+                  beneficioMensal: { type: "number" }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: { description: "Programa social atualizado com sucesso" },
+          404: { description: "Programa social não encontrado" }
+        }
+      },
+      delete: {
+        summary: "Excluir Programa Social",
+        description: "Exclui um programa social pelo ID.",
+        tags: ["Programas Sociais"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        responses: {
+          200: { description: "Programa social excluído com sucesso" },
+          404: { description: "Programa social não encontrado" }
+        }
       }
     },
     "/programas-sociais/associar": {
       post: {
         summary: "Associar Beneficiário a Programa",
-        description: "Associa um beneficiário a um programa social (cria relacionamento no Neo4j).",
+        description: "Associa um beneficiário a um programa social.",
         tags: ["Programas Sociais"],
         security: [{ bearerAuth: [] }],
         requestBody: {
@@ -421,7 +676,42 @@ export const swaggerDocument = {
         }
       }
     },
+    "/programas-sociais/desassociar": {
+      post: {
+        summary: "Desassociar Beneficiário de Programa",
+        description: "Remove a associação de um beneficiário a um programa social.",
+        tags: ["Programas Sociais"],
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["beneficiarioId", "programaSocialId"],
+                properties: {
+                  beneficiarioId: { type: "string", format: "uuid" },
+                  programaSocialId: { type: "string", format: "uuid" }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: { description: "Desassociação realizada com sucesso" }
+        }
+      }
+    },
     "/agendamentos": {
+      get: {
+        summary: "Listar Agendamentos",
+        description: "Retorna todos os agendamentos registrados no PostgreSQL.",
+        tags: ["Agendamentos"],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: "Lista de agendamentos" }
+        }
+      },
       post: {
         summary: "Criar Agendamento",
         description: "Cria um agendamento de visita no PostgreSQL.",
@@ -433,25 +723,85 @@ export const swaggerDocument = {
             "application/json": {
               schema: {
                 type: "object",
-                required: ["dataAgendada", "finalidade", "familiaId"],
+                required: ["dataAgendamento", "hora", "beneficiarioId"],
                 properties: {
-                  dataAgendada: { type: "string", format: "date-time", example: "2026-08-05T09:00:00.000Z" },
-                  finalidade: { type: "string", example: "Entrega de mantimentos e reavaliação socioeconômica" },
-                  familiaId: { type: "string", format: "uuid" }
+                  dataAgendamento: { type: "string", format: "date", example: "2026-08-10" },
+                  hora: { type: "string", example: "14:00" },
+                  beneficiarioId: { type: "string", format: "uuid" },
+                  observacoes: { type: "string", example: "Reavaliação socioeconômica" },
+                  status: { type: "string", enum: ["pendente", "confirmado", "realizado", "cancelado"], example: "pendente" }
                 }
               }
             }
           }
         },
         responses: {
-          201: { description: "Agendamento criado" }
+          201: { description: "Agendamento criado com sucesso" },
+          400: { description: "Dados inválidos ou conflito de horário" }
+        }
+      }
+    },
+    "/agendamentos/{id}": {
+      get: {
+        summary: "Buscar Agendamento por ID",
+        description: "Retorna as informações de um agendamento por ID.",
+        tags: ["Agendamentos"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        responses: {
+          200: { description: "Detalhes do agendamento" },
+          404: { description: "Agendamento não encontrado" }
+        }
+      },
+      put: {
+        summary: "Atualizar Agendamento",
+        description: "Atualiza status, horário ou informações de um agendamento.",
+        tags: ["Agendamentos"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  dataAgendamento: { type: "string", format: "date" },
+                  hora: { type: "string" },
+                  observacoes: { type: "string" },
+                  status: { type: "string", enum: ["pendente", "confirmado", "realizado", "cancelado"] }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: { description: "Agendamento atualizado com sucesso" },
+          404: { description: "Agendamento não encontrado" }
+        }
+      },
+      delete: {
+        summary: "Excluir Agendamento",
+        description: "Exclui um agendamento pelo ID.",
+        tags: ["Agendamentos"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        responses: {
+          200: { description: "Agendamento excluído com sucesso" },
+          404: { description: "Agendamento não encontrado" }
         }
       }
     },
     "/mapa/geojson": {
       get: {
         summary: "GeoJSON dos Municípios",
-        description: "Retorna limites espaciais dos municípios enriquecidos (cacheado via Redis).",
+        description: "Retorna limites espaciais dos municípios da PB (com cache no Redis TTL 24h).",
         tags: ["Mapa & Relatórios"],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -467,10 +817,21 @@ export const swaggerDocument = {
         }
       }
     },
+    "/mapa/cache": {
+      delete: {
+        summary: "Invalidar Cache do Mapa",
+        description: "Invalida a chave de cache do GeoJSON dos municípios no Redis.",
+        tags: ["Mapa & Relatórios"],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: "Cache de mapas invalidado com sucesso." }
+        }
+      }
+    },
     "/relatorios/beneficiarios/pdf": {
       get: {
-        summary: "Relatório de Beneficiários em PDF",
-        description: "Gera e envia o relatório em PDF de beneficiários.",
+        summary: "Relatório Geral de Beneficiários em PDF",
+        description: "Gera e envia o relatório consolidado em PDF de beneficiários.",
         tags: ["Mapa & Relatórios"],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -485,8 +846,8 @@ export const swaggerDocument = {
     },
     "/relatorios/visitas/pdf": {
       get: {
-        summary: "Relatório de Visitas em PDF",
-        description: "Gera e envia o relatório em PDF das visitas domiciliares.",
+        summary: "Relatório Geral de Visitas em PDF",
+        description: "Gera e envia o relatório consolidado em PDF das visitas domiciliares.",
         tags: ["Mapa & Relatórios"],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -499,13 +860,34 @@ export const swaggerDocument = {
         }
       }
     },
+    "/relatorios/visita/{id}/pdf": {
+      get: {
+        summary: "Relatório de Visita Individual em PDF",
+        description: "Gera e envia o relatório em PDF referente a uma visita específica por ID.",
+        tags: ["Mapa & Relatórios"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }
+        ],
+        responses: {
+          200: {
+            description: "Arquivo PDF retornado",
+            content: {
+              "application/pdf": {}
+            }
+          },
+          404: { description: "Visita não encontrada." }
+        }
+      }
+    },
     "/upload": {
       post: {
-        summary: "Upload de Arquivos",
-        description: "Realiza o upload de fotos ou documentos (através do Multer).",
+        summary: "Upload de Arquivos / Fotos",
+        description: "Processa o upload de uma foto ou documento em memória (Multer) e converte para Data URL em Base64.",
         tags: ["Utilidades"],
         security: [{ bearerAuth: [] }],
         requestBody: {
+          required: true,
           content: {
             "multipart/form-data": {
               schema: {
@@ -513,7 +895,8 @@ export const swaggerDocument = {
                 properties: {
                   file: {
                     type: "string",
-                    format: "binary"
+                    format: "binary",
+                    description: "Arquivo JPG, PNG ou PDF de até 5MB"
                   }
                 }
               }
@@ -521,65 +904,156 @@ export const swaggerDocument = {
           }
         },
         responses: {
+          201: {
+            description: "Arquivo processado com sucesso",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    url: { type: "string", description: "Data URL em Base64 pronta para persistência no banco de dados." },
+                    filename: { type: "string" },
+                    originalname: { type: "string" },
+                    mimetype: { type: "string" },
+                    size: { type: "number" }
+                  }
+                }
+              }
+            }
+          },
+          400: { description: "Nenhum arquivo enviado, tipo não suportado ou excede 5MB." }
+        }
+      }
+    },
+    "/neo4j/sync": {
+      post: {
+        summary: "Sincronizar Banco relacional com Neo4j",
+        description: "Executa a sincronização completa de todos os nós (Usuario, Familia, Beneficiario, ProgramaSocial) e relacionamentos no banco de grafos Neo4j.",
+        tags: ["Neo4j / Grafos"],
+        security: [{ bearerAuth: [] }],
+        responses: {
           200: {
-            description: "Arquivo enviado com sucesso",
+            description: "Sincronização realizada com sucesso",
             content: {
               "application/json": {
                 schema: {
                   type: "object",
                   properties: {
                     message: { type: "string" },
-                    filename: { type: "string" },
-                    path: { type: "string" }
+                    stats: { type: "object" },
+                    queue: { type: "object" }
                   }
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/neo4j/sync": {
-      post: {
-        summary: "Sincronizar Neo4j",
-        description: "Sincroniza todos os dados relacionais do PostgreSQL diretamente para o grafo do Neo4j.",
-        tags: ["Operações Neo4j"],
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: { description: "Sincronização concluída com sucesso" }
+          },
+          401: { description: "Não autorizado." },
+          500: { description: "Erro ao sincronizar com o Neo4j." }
         }
       }
     },
     "/neo4j/stats": {
       get: {
-        summary: "Obter Estatísticas do Grafo",
-        description: "Retorna estatísticas de nós e relacionamentos do grafo Neo4j.",
-        tags: ["Operações Neo4j"],
+        summary: "Estatísticas do Grafo Neo4j",
+        description: "Retorna a contagem de nós, relacionamentos e estatísticas da fila assíncrona pós-escrita no Neo4j.",
+        tags: ["Neo4j / Grafos"],
         security: [{ bearerAuth: [] }],
         responses: {
-          200: { description: "Estatísticas do grafo" }
+          200: {
+            description: "Estatísticas retornadas com sucesso",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    nodes: { type: "object" },
+                    relationships: { type: "object" },
+                    queue: { type: "object" }
+                  }
+                }
+              }
+            }
+          },
+          401: { description: "Não autorizado." },
+          500: { description: "Erro ao consultar o Neo4j." }
         }
       }
     },
     "/neo4j/consultas/proximidade": {
       get: {
-        summary: "Consultar Proximidade",
-        description: "Consulta Cypher buscando famílias vizinhas dentro de uma faixa.",
-        tags: ["Operações Neo4j"],
+        summary: "Consulta Cypher: Proximidade Espacial de Famílias",
+        description: "Identifica pares de famílias que residem próximas umas das outras dentro de um raio configurável (em KM) utilizando o relacionamento PROXIMO_DE.",
+        tags: ["Neo4j / Grafos"],
         security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "raio",
+            in: "query",
+            required: false,
+            description: "Raio máximo em quilômetros (padrão: 10.0)",
+            schema: { type: "number", example: 10.0 }
+          }
+        ],
         responses: {
-          200: { description: "Lista de vizinhos geográficos" }
+          200: {
+            description: "Lista de famílias com proximidade espacial",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { type: "object" }
+                }
+              }
+            }
+          },
+          401: { description: "Não autorizado." },
+          500: { description: "Erro interno ao executar consulta Cypher no Neo4j." }
         }
       }
     },
-    "/neo4j/consultas/sobreposicao": {
+    "/neo4j/consultas/sobreposicao-atendimentos": {
       get: {
-        summary: "Consultar Sobreposição de Atendimentos",
-        description: "Busca beneficiários com visitas e atendimentos por múltiplos assistentes.",
-        tags: ["Operações Neo4j"],
+        summary: "Consulta Cypher: Sobreposição de Atendimentos",
+        description: "Localiza beneficiários que receberam atendimento de múltiplos usuários/assistentes sociais (relacionamento FOI_ATENDIDO_POR).",
+        tags: ["Neo4j / Grafos"],
         security: [{ bearerAuth: [] }],
         responses: {
-          200: { description: "Lista de sobreposições de atendimento" }
+          200: {
+            description: "Lista de sobreposição de atendimentos",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { type: "object" }
+                }
+              }
+            }
+          },
+          401: { description: "Não autorizado." },
+          500: { description: "Erro interno ao executar consulta Cypher no Neo4j." }
+        }
+      }
+    },
+    "/neo4j/consultas/rede-relacionamentos": {
+      get: {
+        summary: "Consulta Cypher: Rede Integrada de Relacionamentos",
+        description: "Retorna a topologia completa da rede de relacionamentos (Usuario, Beneficiario, Familia, ProgramaSocial) do grafo.",
+        tags: ["Neo4j / Grafos"],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Rede de relacionamentos do grafo",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { type: "object" }
+                }
+              }
+            }
+          },
+          401: { description: "Não autorizado." },
+          500: { description: "Erro interno ao executar consulta Cypher no Neo4j." }
         }
       }
     }
@@ -597,5 +1071,4 @@ export const swaggerDocument = {
 
 export const swaggerSetup = (app: any) => {
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-  console.log("✓ Rota Swagger (/api-docs) configurada com sucesso.");
 };

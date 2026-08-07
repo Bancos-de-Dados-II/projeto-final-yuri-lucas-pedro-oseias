@@ -25,6 +25,7 @@ export class Familia extends Model<FamiliaAttributes, FamiliaCreationAttributes>
   public declare localizacao: any;
   public declare rendaFamiliar: number | null;
   public declare qtdMembros: number;
+  public declare beneficiarios?: any[];
   public declare readonly createdAt: Date;
   public declare readonly deletedAt: Date | null;
 }
