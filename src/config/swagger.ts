@@ -137,7 +137,7 @@ export const swaggerDocument = {
                   nome: { type: "string", example: "João Assistente" },
                   email: { type: "string", format: "email", example: "joao@geopb.gov.br" },
                   senha: { type: "string", example: "senha123" },
-                  tipo: { type: "string", enum: ["ADMINISTRADOR", "ASSISTENTE_SOCIAL"], example: "ASSISTENTE_SOCIAL" }
+                  tipo: { type: "string", enum: ["administrador", "assistente_social"], example: "assistente_social" }
                 }
               }
             }
